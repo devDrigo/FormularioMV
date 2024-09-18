@@ -18,7 +18,7 @@ namespace FormsMV.Controllers
         public async Task EnviarEmailAsync(List<string> destinatarios, string assunto, string mensagemCorpo)
         {
             var mensagem = new MimeMessage();
-            mensagem.From.Add(new MailboxAddress("Nova Solicitação MV", "rodrigogd.hugo@gmail.com"));
+            mensagem.From.Add(new MailboxAddress("Nova Solicitação MV", "solicitacaomv@gmail.com"));
             
             foreach (var destinatario in destinatarios)
             {
@@ -37,7 +37,7 @@ namespace FormsMV.Controllers
                 try
                 {
                     await cliente.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                    await cliente.AuthenticateAsync("rodrigogd.hugo@gmail.com", "wrisnuvsuvwvjthk");
+                    await cliente.AuthenticateAsync("solicitacaomv@gmail.com", "qleewbvdakggmvrk");
                     await cliente.SendAsync(mensagem);
                 }
                 catch (Exception ex)
