@@ -1,0 +1,127 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
+using System.IO;
+using MimeKit;
+using MailKit.Net.Smtp;
+using System.Threading.Tasks;
+
+namespace FormsMV.Controllers
+{
+    public class HomeController : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public async Task EnviarEmailAsync(string destinatario, string assunto, string mensagemCorpo)
+        {
+            var mensagem = new MimeMessage();
+            mensagem.From.Add(new MailboxAddress("Seu Nome", "rodrigogd.hugo@gmail.com")); // Seu e-mail Gmail
+            mensagem.To.Add(new MailboxAddress("", destinatario)); // Endereço de e-mail do destinatário
+            mensagem.Subject = assunto;
+
+            mensagem.Body = new TextPart("plain")
+            {
+                Text = mensagemCorpo
+            };
+
+            using (var cliente = new MailKit.Net.Smtp.SmtpClient())
+            {
+                try
+                {
+                    // Conecta ao servidor SMTP do Gmail
+                    await cliente.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
+
+                    // Autentica com o seu e-mail e senha de aplicativo
+                    await cliente.AuthenticateAsync("rodrigogd.hugo@gmail.com", "wrisnuvsuvwvjthk");
+
+                    // Envia o e-mail
+                    await cliente.SendAsync(mensagem);
+                }
+                catch (Exception ex)
+                {
+                    // Lida com erros no envio
+                    Console.WriteLine($"Erro ao enviar e-mail: {ex.Message}");
+                    // Opcional: Exibir mensagem de erro na interface
+                    ViewBag.EmailErro = "Erro ao enviar o e-mail. Por favor, tente novamente.";
+                }
+                finally
+                {
+                    // Desconecta do servidor SMTP
+                    await cliente.DisconnectAsync(true);
+                }
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Verificar(string nome, string sexo, DateTime dataNascimento, string cpf, string rg, string orgaoEmissor, string nomeMae, string nomePai, string endereco, string cep, string funcao, string possuiConselho, string numeroConselho, string setorLotacao, string cargaHoraria, string cartaoSus, string email)
+        {
+            // Configura o contexto de licença para uso não comercial
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            string caminhoArquivo = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "usuarios.xlsx");
+
+            if (System.IO.File.Exists(caminhoArquivo))
+            {
+                using (var pacote = new ExcelPackage(new FileInfo(caminhoArquivo)))
+                {
+                    ExcelWorksheet planilha = pacote.Workbook.Worksheets[0]; // A primeira planilha
+                    int totalLinhas = planilha.Dimension.Rows;
+
+                    bool cpfEncontrado = false;
+
+                    for (int i = 2; i <= totalLinhas; i++) // Começa na linha 2 para ignorar o cabeçalho
+                    {
+                        var cpfPlanilha = planilha.Cells[i, 12].Value?.ToString();
+
+                        if (cpfPlanilha == cpf)
+                        {
+                            cpfEncontrado = true;
+                            break;
+                        }
+                    }
+
+                    string corpoEmail = $"Nome Completo: {nome}\n" +
+                                        $"Sexo: {sexo}\n" +
+                                        $"Data de Nascimento: {dataNascimento:dd/MM/yyyy}\n" +
+                                        $"CPF: {cpf}\n" +
+                                        $"RG: {rg}\n" +
+                                        $"Órgão Emissor e UF: {orgaoEmissor}\n" +
+                                        $"Nome da Mãe: {nomeMae}\n" +
+                                        $"Nome do Pai: {nomePai}\n" +
+                                        $"Endereço: {endereco}\n" +
+                                        $"CEP: {cep}\n" +
+                                        $"Função: {funcao}\n" +
+                                        $"Possui Conselho: {possuiConselho}\n" +
+                                        $"{(possuiConselho == "Sim" ? $"Número do Conselho: {numeroConselho}\n" : "")}" +
+                                        $"Setor de Lotação: {setorLotacao}\n" +
+                                        $"Carga Horária: {cargaHoraria}\n" +
+                                        $"Cartão SUS: {cartaoSus}\n" +
+                                        $"E-mail Pessoal: {email}";
+
+                    if (cpfEncontrado)
+                    {
+                        ViewBag.Mensagem = "Formulário enviado com sucesso!";
+
+                        await EnviarEmailAsync(
+                            "rodrigogd30@gmail.com",
+                            $"Criação de Usuário MV ({cpf})",
+                            corpoEmail
+                        );
+
+                        return RedirectToAction("Index");
+                    }
+                    else
+                    {
+                        ViewBag.CpfNaoEncontrado = true;
+                        return View("Index");
+                    }
+                }
+            }
+
+            ViewBag.CpfNaoEncontrado = true;
+            return View("Index");
+        }
+    }
+}

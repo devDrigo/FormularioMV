@@ -1,0 +1,209 @@
+﻿@{
+	ViewData["Title"] = "Solicitação de usuário MV";
+	var cpfNaoEncontrado = ViewBag.CpfNaoEncontrado == true ? "true" : "false";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>@ViewData["Title"]</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f4f4f4;
+			color: #333;
+		}
+
+		.container {
+			max-width: 800px;
+			margin: 20px auto;
+			padding: 20px;
+			background: #fff;
+			border-radius: 8px;
+			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+		}
+
+		h2 {
+			color: #0056b3;
+		}
+
+		.form-control {
+			border-radius: 0;
+		}
+
+		.btn-primary {
+			background-color: #0056b3;
+			border-color: #004494;
+		}
+
+			.btn-primary:hover {
+				background-color: #004494;
+				border-color: #003377;
+			}
+
+		.alert {
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body data-cpf-nao-encontrado="@cpfNaoEncontrado">
+	<div class="container">
+		<h2>@ViewData["Title"]</h2>
+		<form id="funcionarioForm" asp-action="Verificar" method="post">
+			<div class="form-group">
+				<label for="nome">Nome Completo*:</label>
+				<input type="text" class="form-control" id="nome" name="nome" required />
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-6">
+					<label for="sexo">Sexo*:</label>
+					<select class="form-control" id="sexo" name="sexo" required>
+						<option value="Masculino">Masculino</option>
+						<option value="Feminino">Feminino</option>
+						<option value="Outro">Outro</option>
+					</select>
+				</div>
+				<div class="form-group col-md-6">
+					<label for="dataNascimento">Data de Nascimento*:</label>
+					<input type="date" class="form-control" id="dataNascimento" name="dataNascimento" required />
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="form-group col-md-5">
+					<label for="cpf">CPF*:</label>
+					<input type="text" class="form-control" id="cpf" name="cpf" required maxlength="14" />
+				</div>
+				<div class="form-group col-md-4">
+					<label for="rg">RG*:</label>
+					<input type="text" class="form-control" id="rg" name="rg" required />
+				</div>
+				<div class="form-group col-md-3">
+					<label for="orgaoEmissor">Órgão Emissor e UF*:</label>
+					<input type="text" class="form-control" id="orgaoEmissor" name="orgaoEmissor" required />
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="nomeMae">Nome da Mãe*:</label>
+				<input type="text" class="form-control" id="nomeMae" name="nomeMae" required />
+			</div>
+			<div class="form-group">
+				<label for="nomePai">Nome do Pai:</label>
+				<input type="text" class="form-control" id="nomePai" name="nomePai" />
+			</div>
+			<div class="form-group">
+				<label for="endereco">Endereço:</label>
+				<input type="text" class="form-control" id="endereco" name="endereco" />
+			</div>
+			<div class="form-group">
+				<label for="cep">CEP:</label>
+				<input type="text" class="form-control" id="cep" name="cep" />
+			</div>
+			<div class="form-group">
+				<label for="funcao">Função*:</label>
+				<input type="text" class="form-control" id="funcao" name="funcao" required />
+			</div>
+
+			<div class="form-row">
+				<div class="form-group col-md-4">
+					<label>Possui Conselho?*</label>
+					<div class="d-flex">
+						<div class="form-check ml-1 mr-3">
+							<input type="radio" class="form-check-input" id="possuiConselhoSim" name="possuiConselho" value="Sim" required onclick="toggleConselho()" />
+							<label class="form-check-label" for="possuiConselhoSim">Sim</label>
+						</div>
+						<div class="form-check">
+							<input type="radio" class="form-check-input" id="possuiConselhoNao" name="possuiConselho" value="Não" required onclick="toggleConselho()" />
+							<label class="form-check-label" for="possuiConselhoNao">Não</label>
+						</div>
+					</div>
+				</div>
+				<div id="numeroConselhoContainer" class="form-group col-md-8" style="display:none;">
+					<label for="numeroConselho">Número do Conselho*:</label>
+					<input type="text" class="form-control" id="numeroConselho" name="numeroConselho" />
+				</div>
+			</div>
+
+
+
+			<div class="form-group">
+				<label for="setorLotacao">Setor de Lotação:</label>
+				<input type="text" class="form-control" id="setorLotacao" name="setorLotacao" />
+			</div>
+			<div class="form-group">
+				<label for="cargaHoraria">Carga Horária:</label>
+				<input type="text" class="form-control" id="cargaHoraria" name="cargaHoraria" />
+			</div>
+			<div class="form-group">
+				<label for="cartaoSus">Cartão SUS*:</label>
+				<input type="text" class="form-control" id="cartaoSus" name="cartaoSus" required />
+			</div>
+			<div class="form-group">
+				<label for="email">E-mail Pessoal*:</label>
+				<input type="email" class="form-control" id="email" name="email" required />
+			</div>
+			<button type="submit" class="btn btn-primary">Enviar</button>
+		</form>
+	</div>
+
+	<script>
+		function toggleConselho() {
+			var conselhoSim = document.getElementById("possuiConselhoSim");
+			var conselhoContainer = document.getElementById("numeroConselhoContainer");
+			if (conselhoSim.checked) {
+				conselhoContainer.style.display = "block";
+				document.getElementById("numeroConselho").required = true;
+			} else {
+				conselhoContainer.style.display = "none";
+				document.getElementById("numeroConselho").required = false;
+			}
+		}
+
+		document.getElementById("funcionarioForm").addEventListener("submit", function (event) {
+			event.preventDefault(); // Evita o envio normal do formulário
+
+			var form = event.target;
+			var formData = new FormData(form);
+
+			fetch(form.action, {
+				method: 'POST',
+				body: formData
+			})
+				.then(response => response.text())
+				.then(html => {
+					var parser = new DOMParser();
+					var doc = parser.parseFromString(html, 'text/html');
+
+					var cpfNaoEncontrado = doc.querySelector('body').getAttribute('data-cpf-nao-encontrado') === 'true';
+
+					if (cpfNaoEncontrado) {
+						alert('CPF não encontrado na lista de funcionários regulares. Por favor, entrar em contato com RH para verificar pendências.');
+					} else {
+						alert('Formulário enviado com sucesso!');
+					}
+				})
+				.catch(error => console.error('Erro ao enviar o formulário:', error));
+		});
+
+		function aplicarMascaraCPF(cpfInput) {
+			let cpf = cpfInput.value;
+
+			// Remove todos os caracteres que não sejam números
+			cpf = cpf.replace(/\D/g, '');
+
+			// Adiciona os pontos e o traço na posição correta
+			cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");
+			cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");
+			cpf = cpf.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+			cpfInput.value = cpf;
+		}
+
+		// Adiciona o evento de input para aplicar a máscara enquanto o usuário digita
+		document.getElementById('cpf').addEventListener('input', function () {
+			aplicarMascaraCPF(this);
+		});
+	</script>
+</body>
+</html>

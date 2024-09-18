@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: FormularioMV
+    env: aspnetcore
+    buildCommand: dotnet publish -c Release -o out
+    startCommand: dotnet out/FormsMV.dll
+    plan: free
+    regions:
+      - sao-paulo  # Região desejada para o deploy
