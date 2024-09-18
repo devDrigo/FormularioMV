@@ -53,12 +53,12 @@
 		<h2 style="text-align: center;">@ViewData["Title"]</h2>
 		<form id="funcionarioForm" asp-action="Verificar" method="post">
 			<div class="form-group">
-				<label for="nome">Nome Completo*:</label>
+				<label for="nome">Nome Completo *</label>
 				<input type="text" class="form-control" id="nome" name="nome" required />
 			</div>
 			<div class="form-row">
 				<div class="form-group col-md-6">
-					<label for="sexo">Sexo*:</label>
+					<label for="sexo">Sexo *</label>
 					<select class="form-control" id="sexo" name="sexo" required>
 						<option value="Masculino">Masculino</option>
 						<option value="Feminino">Feminino</option>
@@ -66,39 +66,39 @@
 					</select>
 				</div>
 				<div class="form-group col-md-6">
-					<label for="dataNascimento">Data de Nascimento*:</label>
+					<label for="dataNascimento">Data de Nascimento *</label>
 					<input type="date" class="form-control" id="dataNascimento" name="dataNascimento" required />
 				</div>
 			</div>
 			<div class="form-row">
 				<div class="form-group col-md-5">
-					<label for="cpf">CPF*:</label>
+					<label for="cpf">CPF *</label>
 					<input type="text" class="form-control" id="cpf" name="cpf" required maxlength="14" />
 				</div>
 				<div class="form-group col-md-4">
-					<label for="rg">RG*:</label>
+					<label for="rg">RG *</label>
 					<input type="text" class="form-control" id="rg" name="rg" required />
 				</div>
 				<div class="form-group col-md-3">
-					<label for="orgaoEmissor">Órgão Emissor e UF*:</label>
+					<label for="orgaoEmissor">Órgão Emissor e UF *</label>
 					<input type="text" class="form-control" id="orgaoEmissor" name="orgaoEmissor" required />
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="nomeMae">Nome da Mãe*:</label>
+				<label for="nomeMae">Nome da Mãe *</label>
 				<input type="text" class="form-control" id="nomeMae" name="nomeMae" required />
 			</div>
 			<div class="form-group">
-				<label for="nomePai">Nome do Pai:</label>
+				<label for="nomePai">Nome do Pai</label>
 				<input type="text" class="form-control" id="nomePai" name="nomePai" />
-			</div>
-			<div class="form-group">
-				<label for="endereco">Endereço:</label>
-				<input type="text" class="form-control" id="endereco" name="endereco" />
 			</div>
 			<div class="form-group">
 				<label for="cep">CEP:</label>
 				<input type="text" class="form-control" id="cep" name="cep" />
+			</div>
+			<div class="form-group">
+				<label for="endereco">Endereço:</label>
+				<input type="text" class="form-control" id="endereco" name="endereco" />
 			</div>
 			<div class="form-group">
 				<label for="funcao">Função*:</label>
@@ -106,41 +106,40 @@
 			</div>
 
 			<div class="form-row">
-				<div class="form-group col-md-4">
-					<label>Possui Conselho?*</label>
+				<div class="form-group col-md-6">
+					<label>Possui Conselho? (Ex.: COREN, CRM) *</label>
 					<div class="d-flex">
 						<div class="form-check ml-1 mr-3">
 							<input type="radio" class="form-check-input" id="possuiConselhoSim" name="possuiConselho" value="Sim" required onclick="toggleConselho()" />
 							<label class="form-check-label" for="possuiConselhoSim">Sim</label>
 						</div>
-						<div class="form-check">
+						<div class="form-check ml-1">
 							<input type="radio" class="form-check-input" id="possuiConselhoNao" name="possuiConselho" value="Não" required onclick="toggleConselho()" />
 							<label class="form-check-label" for="possuiConselhoNao">Não</label>
 						</div>
 					</div>
 				</div>
-				<div id="numeroConselhoContainer" class="form-group col-md-8" style="display:none;">
-					<label for="numeroConselho">Número do Conselho*:</label>
+				<div id="numeroConselhoContainer" class="form-group col-md-6" style="display:none;">
+					<label for="numeroConselho">Número do Conselho *</label>
 					<input type="text" class="form-control" id="numeroConselho" name="numeroConselho" />
 				</div>
 			</div>
 
 
-
 			<div class="form-group">
-				<label for="setorLotacao">Setor de Lotação:</label>
+				<label for="setorLotacao">Setor de Lotação</label>
 				<input type="text" class="form-control" id="setorLotacao" name="setorLotacao" />
 			</div>
 			<div class="form-group">
-				<label for="cargaHoraria">Carga Horária:</label>
+				<label for="cargaHoraria">Carga Horária</label>
 				<input type="text" class="form-control" id="cargaHoraria" name="cargaHoraria" />
 			</div>
 			<div class="form-group">
-				<label for="cartaoSus">Cartão SUS*:</label>
+				<label for="cartaoSus">Cartão SUS *</label>
 				<input type="text" class="form-control" id="cartaoSus" name="cartaoSus" required />
 			</div>
 			<div class="form-group">
-				<label for="email">E-mail Pessoal*:</label>
+				<label for="email">E-mail para receber os dados do usuário MV *</label>
 				<input type="email" class="form-control" id="email" name="email" required />
 			</div>
 			<button type="submit" class="btn btn-primary">Enviar</button>
