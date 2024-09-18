@@ -17,8 +17,8 @@ namespace FormsMV.Controllers
         public async Task EnviarEmailAsync(string destinatario, string assunto, string mensagemCorpo)
         {
             var mensagem = new MimeMessage();
-            mensagem.From.Add(new MailboxAddress("Seu Nome", "rodrigogd.hugo@gmail.com")); // Seu e-mail Gmail
-            mensagem.To.Add(new MailboxAddress("", destinatario)); // Endereço de e-mail do destinatário
+            mensagem.From.Add(new MailboxAddress("Nova Solicitação MV", "rodrigogd.hugo@gmail.com"));
+            mensagem.To.Add(new MailboxAddress("", destinatario));
             mensagem.Subject = assunto;
 
             mensagem.Body = new TextPart("plain")
@@ -30,25 +30,19 @@ namespace FormsMV.Controllers
             {
                 try
                 {
-                    // Conecta ao servidor SMTP do Gmail
                     await cliente.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
 
-                    // Autentica com o seu e-mail e senha de aplicativo
                     await cliente.AuthenticateAsync("rodrigogd.hugo@gmail.com", "wrisnuvsuvwvjthk");
 
-                    // Envia o e-mail
                     await cliente.SendAsync(mensagem);
                 }
                 catch (Exception ex)
                 {
-                    // Lida com erros no envio
                     Console.WriteLine($"Erro ao enviar e-mail: {ex.Message}");
-                    // Opcional: Exibir mensagem de erro na interface
                     ViewBag.EmailErro = "Erro ao enviar o e-mail. Por favor, tente novamente.";
                 }
                 finally
                 {
-                    // Desconecta do servidor SMTP
                     await cliente.DisconnectAsync(true);
                 }
             }
@@ -57,7 +51,6 @@ namespace FormsMV.Controllers
         [HttpPost]
         public async Task<IActionResult> Verificar(string nome, string sexo, DateTime dataNascimento, string cpf, string rg, string orgaoEmissor, string nomeMae, string nomePai, string endereco, string cep, string funcao, string possuiConselho, string numeroConselho, string setorLotacao, string cargaHoraria, string cartaoSus, string email)
         {
-            // Configura o contexto de licença para uso não comercial
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
             string caminhoArquivo = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "usuarios.xlsx");
@@ -66,7 +59,7 @@ namespace FormsMV.Controllers
             {
                 using (var pacote = new ExcelPackage(new FileInfo(caminhoArquivo)))
                 {
-                    ExcelWorksheet planilha = pacote.Workbook.Worksheets[0]; // A primeira planilha
+                    ExcelWorksheet planilha = pacote.Workbook.Worksheets[0];
                     int totalLinhas = planilha.Dimension.Rows;
 
                     bool cpfEncontrado = false;
