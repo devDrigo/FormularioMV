@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using System.IO;
 using MimeKit;
 using MailKit.Net.Smtp;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace FormsMV.Controllers
 {
@@ -14,11 +15,16 @@ namespace FormsMV.Controllers
             return View();
         }
 
-        public async Task EnviarEmailAsync(string destinatario, string assunto, string mensagemCorpo)
+        public async Task EnviarEmailAsync(List<string> destinatarios, string assunto, string mensagemCorpo)
         {
             var mensagem = new MimeMessage();
             mensagem.From.Add(new MailboxAddress("Nova Solicitação MV", "rodrigogd.hugo@gmail.com"));
-            mensagem.To.Add(new MailboxAddress("", destinatario));
+            
+            foreach (var destinatario in destinatarios)
+            {
+                mensagem.To.Add(new MailboxAddress("", destinatario));
+            }
+            
             mensagem.Subject = assunto;
 
             mensagem.Body = new TextPart("plain")
@@ -31,9 +37,7 @@ namespace FormsMV.Controllers
                 try
                 {
                     await cliente.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-
                     await cliente.AuthenticateAsync("rodrigogd.hugo@gmail.com", "wrisnuvsuvwvjthk");
-
                     await cliente.SendAsync(mensagem);
                 }
                 catch (Exception ex)
@@ -97,11 +101,13 @@ namespace FormsMV.Controllers
                     {
                         ViewBag.Mensagem = "Formulário enviado com sucesso!";
 
-                        await EnviarEmailAsync(
+                        var destinatarios = new List<string>
+                        {
                             "rodrigogd30@gmail.com",
-                            $"Criação de Usuário MV ({cpf})",
-                            corpoEmail
-                        );
+                            email
+                        };
+
+                        await EnviarEmailAsync(destinatarios, $"Criação de Usuário MV ({cpf})", corpoEmail);
 
                         return RedirectToAction("Index");
                     }
