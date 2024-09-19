@@ -93,15 +93,15 @@
 				<input type="text" class="form-control" id="nomePai" name="nomePai" />
 			</div>
 			<div class="form-group">
-				<label for="cep">CEP:</label>
+				<label for="cep">CEP</label>
 				<input type="text" class="form-control" id="cep" name="cep" />
 			</div>
 			<div class="form-group">
-				<label for="endereco">Endereço:</label>
+				<label for="endereco">Endereço</label>
 				<input type="text" class="form-control" id="endereco" name="endereco" />
 			</div>
 			<div class="form-group">
-				<label for="funcao">Função*:</label>
+				<label for="funcao">Cargo/Função *</label>
 				<input type="text" class="form-control" id="funcao" name="funcao" required />
 			</div>
 
@@ -197,7 +197,7 @@
 					if (cpfNaoEncontrado) {
 						alert('CPF não encontrado na lista de funcionários regulares. Por favor, entrar em contato com RH para verificar pendências.');
 					} else {
-						alert('Formulário enviado com sucesso!');
+						alert('Solicitação foi enviada com sucesso! Em breve você receberá a cópia dos seus dados. Seu login e senha MV serão enviados no e-mail em até 5 dias úteis.');
 					}
 				})
 				.catch(error => console.error('Erro ao enviar o formulário:', error));
