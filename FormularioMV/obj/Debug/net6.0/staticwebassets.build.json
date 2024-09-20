@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "epJ0b4V4acXDSxNtvBFniGGbxl9wP1+9n3MCGPGWbQM=",
+  "Hash": "ZVWpZnKP2eYnfoW0tlAz8yvjgVM1uzbEriUwAPsiai0=",
   "Source": "FormularioMV",
   "BasePath": "_content/FormularioMV",
   "Mode": "Default",
@@ -91,6 +91,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "C:\\Users\\rodrigo.garcia\\source\\repos\\FormularioMV\\FormularioMV\\wwwroot\\imagens\\logo.png",
+      "SourceId": "FormularioMV",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\rodrigo.garcia\\source\\repos\\FormularioMV\\FormularioMV\\wwwroot\\",
+      "BasePath": "_content/FormularioMV",
+      "RelativePath": "imagens/logo.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\imagens\\logo.png"
     },
     {
       "Identity": "C:\\Users\\rodrigo.garcia\\source\\repos\\FormularioMV\\FormularioMV\\wwwroot\\js\\site.js",

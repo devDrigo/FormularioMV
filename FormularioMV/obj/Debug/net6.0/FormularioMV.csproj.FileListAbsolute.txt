@@ -58,3 +58,4 @@ C:\Users\rodrigo.garcia\source\repos\FormularioMV\FormularioMV\obj\Debug\net6.0\
 C:\Users\rodrigo.garcia\source\repos\FormularioMV\FormularioMV\obj\Debug\net6.0\FormularioMV.pdb
 C:\Users\rodrigo.garcia\source\repos\FormularioMV\FormularioMV\obj\Debug\net6.0\FormularioMV.genruntimeconfig.cache
 C:\Users\rodrigo.garcia\source\repos\FormularioMV\FormularioMV\obj\Debug\net6.0\ref\FormularioMV.dll
+C:\Users\rodrigo.garcia\source\repos\FormularioMV\FormularioMV\obj\Debug\net6.0\FormularioMV.sourcelink.json

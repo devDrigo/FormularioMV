@@ -13,6 +13,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\Users\\rodrigo.garcia\\source\\repos\\FormularioMV\\FormularioMV\\wwwroot\\imagens\\logo.png",
+      "PackagePath": "staticwebassets\\imagens\\logo.png"
+    },
+    {
       "Id": "C:\\Users\\rodrigo.garcia\\source\\repos\\FormularioMV\\FormularioMV\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },
