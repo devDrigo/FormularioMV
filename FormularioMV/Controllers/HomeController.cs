@@ -79,7 +79,10 @@ namespace FormsMV.Controllers
                         }
                     }
 
-                    string corpoEmail = $"Nome Completo: {nome}\n" +
+                    string corpoEmail = $"Precisa de usuário de rede: {usuarioRede}\n" +
+                                        $"Precisa de usuário MV: {usuarioMV}\n" +
+                                        $"Usuário espelho: {usuarioEspelho}\n" +
+                                        $"Nome Completo: {nome}\n" +
                                         $"Sexo: {sexo}\n" +
                                         $"Data de Nascimento: {dataNascimento:dd/MM/yyyy}\n" +
                                         $"CPF: {cpf}\n" +
