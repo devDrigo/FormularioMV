@@ -1,5 +1,5 @@
 ﻿@{
-	ViewData["Title"] = "Solicitação de usuário HUGO";
+	ViewData["Title"] = "Solicitação de usuário HEMU";
 	var cpfNaoEncontrado = ViewBag.CpfNaoEncontrado == true ? "true" : "false";
 }
 
@@ -125,6 +125,24 @@
 				</div>
 			</div>
 
+				<div class="form-group col-md-6">
+					<label>Precisa usuário para computador? (Ex.: COREN, CRM) *</label>
+					<div class="d-flex">
+						<div class="form-check ml-1 mr-3">
+							<input type="radio" class="form-check-input" id="usuarioRedeSim" name="usuarioRede" value="Sim" required/>
+							<label class="form-check-label" for="usuarioRedeSim">Sim</label>
+						</div>
+						<div class="form-check ml-1">
+							<input type="radio" class="form-check-input" id="usuarioRedeNao" name="usuarioRede" value="Não" required/>
+							<label class="form-check-label" for="usuarioRedeNao">Não</label>
+						</div>
+					</div>
+				</div>
+
+			<div class="form-group">
+				<label for="setorLotacao">Setor de Lotação</label>
+				<input type="text" class="form-control" id="setorLotacao" name="setorLotacao" />
+			</div>
 
 			<div class="form-group">
 				<label for="setorLotacao">Setor de Lotação</label>
@@ -139,7 +157,7 @@
 				<input type="text" class="form-control" id="cartaoSus" name="cartaoSus" required />
 			</div>
 			<div class="form-group">
-				<label for="email">E-mail para receber os dados do usuário *</label>
+				<label for="email">Informe seu e-mail institucional para receber os dados de acesso. Apenas solicitações com e-mail institucional serão atendidas. Em caso de dúvida, consulte o responsável pelo seu setor. *</label>
 				<input type="email" class="form-control" id="email" name="email" required />
 			</div>
 			<button type="submit" class="btn btn-primary">Enviar</button>
