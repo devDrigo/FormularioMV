@@ -103,7 +103,7 @@ namespace FormsMV.Controllers
 
                         var destinatarios = new List<string>
                         {
-                            "rodrigogd30@gmail.com",
+                            "ti.f35@hmtjgo.org.br",
                             email
                         };
 
