@@ -53,7 +53,7 @@ namespace FormsMV.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Verificar(string nome, string sexo, DateTime dataNascimento, string cpf, string rg, string orgaoEmissor, string nomeMae, string nomePai, string endereco, string cep, string funcao, string possuiConselho, string numeroConselho, string setorLotacao, string cargaHoraria, string cartaoSus, string email)
+        public async Task<IActionResult> Verificar(string nome, string sexo, DateTime dataNascimento, string cpf, string rg, string orgaoEmissor, string nomeMae, string nomePai, string endereco, string cep, string funcao, string possuiConselho, string numeroConselho, string usuarioRede, string usuarioMV, string setorLotacao, string cargaHoraria, string cartaoSus, string usuarioEspelho, string email)
         {
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
