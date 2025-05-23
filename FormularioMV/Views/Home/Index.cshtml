@@ -76,17 +76,17 @@
 					<input type="text" class="form-control" id="cpf" name="cpf" required maxlength="14" />
 				</div>
 				<div class="form-group col-md-4">
-					<label for="rg">RG *</label>
-					<input type="text" class="form-control" id="rg" name="rg" required />
+					<label for="rg">RG</label>
+					<input type="text" class="form-control" id="rg" name="rg" />
 				</div>
 				<div class="form-group col-md-3">
-					<label for="orgaoEmissor">Órgão Emissor e UF *</label>
-					<input type="text" class="form-control" id="orgaoEmissor" name="orgaoEmissor" required />
+					<label for="orgaoEmissor">Órgão Emissor e UF</label>
+					<input type="text" class="form-control" id="orgaoEmissor" name="orgaoEmissor"/>
 				</div>
 			</div>
 			<div class="form-group">
-				<label for="nomeMae">Nome da Mãe *</label>
-				<input type="text" class="form-control" id="nomeMae" name="nomeMae" required />
+				<label for="nomeMae">Nome da Mãe</label>
+				<input type="text" class="form-control" id="nomeMae" name="nomeMae" />
 			</div>
 			<div class="form-group">
 				<label for="nomePai">Nome do Pai</label>
@@ -127,17 +127,17 @@
 
 				<div class="form-group ">
 
-					<label>Precisa usuário para computador? (Ex.: COREN, CRM) *</label>
+					<label>Precisa usuário para computador?*</label>
 
 					<div class="d-flex">
 
 						<div class="form-check ml-1 mr-3">
-							<input type="radio" class="form-check-input" id="usuarioRedeSim" name="usuarioRede" value="Sim" required/>
+							<input type="radio" class="form-check-input" id="usuarioRedeSim" name="usuarioRede" value="Sim. Preciso de um usuário próprio." required/>
 							<label class="form-check-label" for="usuarioRedeSim">Sim</label>
 						</div>
 
 						<div class="form-check ml-1">
-							<input type="radio" class="form-check-input" id="usuarioRedeNao" name="usuarioRede" value="Não" required/>
+							<input type="radio" class="form-check-input" id="usuarioRedeNao" name="usuarioRede" value="Não. Vou utilizar o usuário genérico do setor." required/>
 							<label class="form-check-label" for="usuarioRedeNao">Não</label>
 						</div>
 
@@ -161,6 +161,10 @@
 			<div class="form-group">
 				<label for="cartaoSus">Cartão SUS *</label>
 				<input type="text" class="form-control" id="cartaoSus" name="cartaoSus" required />
+			</div>
+			<div class="form-group">
+				<label for="email">Informe um usuário que já existe e possui os mesmos acessos que você precisa *</label>
+				<input type="text" class="form-control" id="email" name="email" required />
 			</div>
 			<div class="form-group">
 				<label for="email">Informe seu e-mail institucional para receber os dados de acesso. Apenas solicitações com e-mail institucional serão atendidas. Em caso de dúvida, consulte o responsável pelo seu setor. *</label>
