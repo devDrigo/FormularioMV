@@ -97,7 +97,7 @@ namespace FormsMV.Controllers
                                         $"Cartão SUS: {cartaoSus}\n" +
                                         $"E-mail Pessoal: {email}";
 
-                    if (cpfEncontrado)
+                    if (true)
                     {
                         ViewBag.Mensagem = "Formulário enviado com sucesso!";
 
