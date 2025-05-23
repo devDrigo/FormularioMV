@@ -127,23 +127,45 @@
 
 				<div class="form-group ">
 
-					<label>Precisa usuário para computador?*</label>
+					<label>Precisa usuário de para de rede (computador)?*</label>
 
 					<div class="d-flex">
 
 						<div class="form-check ml-1 mr-3">
 							<input type="radio" class="form-check-input" id="usuarioRedeSim" name="usuarioRede" value="Sim" required/>
-							<label class="form-check-label" for="usuarioRedeSim">Sim. Preciso de um usuário próprio.</label>
+							<label class="form-check-label" for="usuarioRede">Sim Preciso de um usuário próprio.</label>
 						</div>
 
 						<div class="form-check ml-1">
 							<input type="radio" class="form-check-input" id="usuarioRedeNao" name="usuarioRede" value="Não" required/>
-							<label class="form-check-label" for="usuarioRedeNao">Não. Vou utilizar o usuário genérico do setor.</label>
+							<label class="form-check-label" for="usuarioRede">Não Vou utilizar o usuário genérico do setor.</label>
 						</div>
 
 					</div>
 
 				</div>
+
+				<div class="form-group ">
+
+					<label>Precisa usuário MV?*</label>
+
+					<div class="d-flex">
+
+						<div class="form-check ml-1 mr-3">
+							<input type="radio" class="form-check-input" id="usuarioMVSim" name="usuarioMV" value="Sim" required/>
+							<label class="form-check-label" for="usuarioMV>Sim.</label>
+						</div>
+
+						<div class="form-check ml-1">
+							<input type="radio" class="form-check-input" id="usuarioMVNao" name="usuarioMV" value="Não" required/>
+							<label class="form-check-label" for="usuarioMV">Não.</label>
+						</div>
+
+					</div>
+
+				</div>
+
+
 
 
 			<div class="form-group">
@@ -159,8 +181,8 @@
 				<input type="text" class="form-control" id="cartaoSus" name="cartaoSus" required />
 			</div>
 			<div class="form-group">
-				<label for="email">Informe um usuário que já existe e possui os mesmos acessos que você precisa *</label>
-				<input type="text" class="form-control" id="email" name="email" required />
+				<label for="usuarioEspelho">Informe um usuário que já existe e possui os mesmos acessos que você precisa *</label>
+				<input type="text" class="form-control" id="email" name="usuarioEspelho" required />
 			</div>
 			<div class="form-group">
 				<label for="email">Informe seu e-mail institucional para receber os dados de acesso. Apenas solicitações com e-mail institucional serão atendidas. Em caso de dúvida, consulte o responsável pelo seu setor. *</label>
