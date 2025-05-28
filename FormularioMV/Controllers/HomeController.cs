@@ -98,7 +98,7 @@ namespace FormsMV.Controllers
                                         $"Setor de Lotação: {setorLotacao}\n" +
                                         $"Carga Horária: {cargaHoraria}\n" +
                                         $"Cartão SUS: {cartaoSus}\n" +
-                                        $"E-mail Pessoal: {email}";
+                                        $"E-mail Corporativo: {email}";
 
                     if (true)
                     {
