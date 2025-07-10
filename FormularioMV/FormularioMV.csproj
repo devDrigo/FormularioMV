@@ -9,6 +9,8 @@
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="7.3.2" />
     <PackageReference Include="MailKit" Version="4.7.1.1" />
+    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.57.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.57.0" />
   </ItemGroup>
 
 </Project>
