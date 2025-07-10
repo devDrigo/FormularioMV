@@ -58,12 +58,11 @@
             </div>
         </div>
 
-
-
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label>Sensório*</label>
                 <select class="form-control" name="sensorio" required>
+                    <option value="" selected disabled>Selecione...</option>
                     <option>Alerta</option>
                     <option>Responde a comando de voz</option>
                     <option>Responde a dor</option>
@@ -74,6 +73,7 @@
             <div class="form-group col-md-6">
                 <label>Débito urinário*</label>
                 <select class="form-control" name="debito_urina" required>
+                    <option value="" selected disabled>Selecione...</option>
                     <option>Normal</option>
                     <option>Oligúria &lt;0,5ml/kg/h</option>
                     <option>Anúria</option>
@@ -85,6 +85,7 @@
         <div class="form-group">
             <label>Suporte O₂*</label>
             <select class="form-control" id="suporteO2" name="suporte_o2" required>
+                <option value="" selected disabled>Selecione...</option>
                 <option>Ar ambiente</option>
                 <option>Óculos nasal ou cateter nasal</option>
                 <option>Campânula</option>
@@ -103,6 +104,7 @@
         <div class="form-group">
             <label>Isolamento necessário?*</label>
             <select class="form-control" id="isolamentoSel" name="isolamento" required>
+                <option value="" selected disabled>Selecione...</option>
                 <option value="Não">Não</option>
                 <option value="Sim">Sim</option>
             </select>
@@ -110,6 +112,7 @@
         <div class="form-group" id="germeContainer" style="display:none;">
             <label>Germe*</label>
             <select class="form-control" name="germe">
+                <option value="" selected disabled>Selecione...</option>
                 <option>Rubéola</option>
                 <option>Sarampo</option>
                 <option>Varicela</option>
@@ -129,6 +132,7 @@
             <div class="form-group col-md-4">
                 <label>Drogas vasoativas?*</label>
                 <select class="form-control" id="vasoSel" name="vaso" required>
+                    <option value="" selected disabled>Selecione...</option>
                     <option value="Não">Não</option>
                     <option value="Sim">Sim</option>
                 </select>
@@ -177,7 +181,6 @@
     </form>
 </div>
 
-<!-- (...) resto do head e html igual ao seu -->
 
 <script>
   $('#suporteO2').change(function () {
