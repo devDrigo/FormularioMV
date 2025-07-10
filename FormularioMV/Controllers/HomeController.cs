@@ -47,36 +47,39 @@ namespace SeuProjeto.Controllers
                 // Helper para pegar valor ou string vazia
                 string Get(string key) => form.TryGetValue(key, out var v) ? v.ToString() : "";
 
-                var dados = new List<object>
-                {
-                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                    Get("fc"),
-                    Get("fr"),
-                    Get("tax"),
-                    Get("pa"),
-                    Get("sat"),
-                    form.ContainsKey("satNaoAval") ? "Sim" : "Não",
-                    Get("sensorio"),
-                    Get("debito_urina"),
-                    Get("suporte_o2"),
-                    Get("fluxo"),
-                    Get("fio2"),
-                    Get("sat_vent"),
-                    Get("peep"),
-                    Get("sat_cpap"),
-                    Get("peep_cpap"),
-                    Get("isolamento"),
-                    Get("germe"),
-                    Get("vaso"),
-                    Get("nome_vaso"),
-                    Get("dose_vaso"),
-                    Get("evolucao"),
-                    Get("origem"),
-                    Get("destino"),
-                    Get("dt_alta"),
-                    Get("contato_nome"),
-                    Get("contato_tel")
-                };
+var dados = new List<object>
+    {
+        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+        $"{form["fc"]} bpm",
+        $"{form["fr"]} ipm",
+        $"{form["tax"]} °C",
+        $"{form["pa"]} mmHg",
+        form.ContainsKey("satNaoAval") ? "Não avaliado" : $"{form["sat"]} %",
+        form.ContainsKey("satNaoAval") ? "Sim" : "Não",
+        form["sensorio"],
+        form["debito_urina"],
+        form["suporte_o2"],
+
+        // campos opcionais suporte O2
+        form.ContainsKey("fluxo") ? $"{form["fluxo"]} L/min" : "",
+        form.ContainsKey("fio2") ? $"{form["fio2"]} %" : "",
+        form.ContainsKey("sat_vent") ? $"{form["sat_vent"]} %" : "",
+        form.ContainsKey("peep") ? $"{form["peep"]} cmH₂O" : "",
+        form.ContainsKey("sat_cpap") ? $"{form["sat_cpap"]} %" : "",
+        form.ContainsKey("peep_cpap") ? $"{form["peep_cpap"]} cmH₂O" : "",
+
+        form["isolamento"],
+        form["germe"],
+        form["vaso"],
+        form["nome_vaso"],
+        form["dose_vaso"],
+        form["evolucao"],
+        form["origem"],
+        form["destino"],
+        form["dt_alta"],
+        form["contato_nome"],
+        form["contato_tel"]
+    };
 
                 var range = "NaoRenomear!A1";
 
