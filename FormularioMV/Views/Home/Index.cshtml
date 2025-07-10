@@ -262,6 +262,12 @@
     }
 });
 
+   // Desabilita Sat se Não Avaliado
+    $('#satNaoAval').change(function () {
+        $('#satInput').prop('disabled', this.checked).val(this.checked ? '' : $('#satInput').val());
+    });
+
+
 </script>
 
 </body>
