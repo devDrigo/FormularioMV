@@ -1,129 +1,101 @@
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
 using Microsoft.AspNetCore.Mvc;
-using OfficeOpenXml;
-using System.IO;
-using MimeKit;
-using MailKit.Net.Smtp;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using System;
 
-namespace FormsMV.Controllers
+namespace SeuProjeto.Controllers
 {
     public class HomeController : Controller
     {
+        // Coloque aqui o ID da sua planilha (pegue da URL da planilha no Google Sheets)
+        private readonly string _spreadsheetId = "1SMBMTjjHdqBXYhVPBmDmvcwxRhLU4-8Ai1bYIRV0GoU";
+
         public IActionResult Index()
         {
             return View();
         }
 
-        public async Task EnviarEmailAsync(List<string> destinatarios, string assunto, string mensagemCorpo)
+[HttpPost]
+public async Task<IActionResult> Enviar(Microsoft.AspNetCore.Http.IFormCollection form)
+{
+    try
+    {
+        var credentialsJson = Environment.GetEnvironmentVariable("GOOGLE_SHEETS_CREDENTIALS_JSON");
+        if (string.IsNullOrEmpty(credentialsJson))
         {
-            var mensagem = new MimeMessage();
-            mensagem.From.Add(new MailboxAddress("Nova Solicitação MV", "solicitacaomv@gmail.com"));
-            
-            foreach (var destinatario in destinatarios)
-            {
-                mensagem.To.Add(new MailboxAddress("", destinatario));
-            }
-            
-            mensagem.Subject = assunto;
-
-            mensagem.Body = new TextPart("plain")
-            {
-                Text = mensagemCorpo
-            };
-
-            using (var cliente = new MailKit.Net.Smtp.SmtpClient())
-            {
-                try
-                {
-                    await cliente.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                    await cliente.AuthenticateAsync("solicitacaomv@gmail.com", "qleewbvdakggmvrk");
-                    await cliente.SendAsync(mensagem);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Erro ao enviar e-mail: {ex.Message}");
-                    ViewBag.EmailErro = "Erro ao enviar o e-mail. Por favor, tente novamente.";
-                }
-                finally
-                {
-                    await cliente.DisconnectAsync(true);
-                }
-            }
+            TempData["Mensagem"] = "Credenciais do Google Sheets não configuradas!";
+            return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Verificar(string nome, string sexo, DateTime dataNascimento, string cpf, string rg, string orgaoEmissor, string nomeMae, string nomePai, string endereco, string cep, string funcao, string possuiConselho, string numeroConselho, string usuarioRede, string usuarioMV, string setorLotacao, string cargaHoraria, string cartaoSus, string usuarioEspelho, string email)
+        GoogleCredential credential;
+        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(credentialsJson)))
         {
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            string caminhoArquivo = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "usuarios.xlsx");
-
-            if (System.IO.File.Exists(caminhoArquivo))
-            {
-                using (var pacote = new ExcelPackage(new FileInfo(caminhoArquivo)))
-                {
-                    ExcelWorksheet planilha = pacote.Workbook.Worksheets[0];
-                    int totalLinhas = planilha.Dimension.Rows;
-
-                    bool cpfEncontrado = false;
-
-                    for (int i = 2; i <= totalLinhas; i++) // Começa na linha 2 para ignorar o cabeçalho
-                    {
-                        var cpfPlanilha = planilha.Cells[i, 12].Value?.ToString();
-
-                        if (cpfPlanilha == cpf)
-                        {
-                            cpfEncontrado = true;
-                            break;
-                        }
-                    }
-
-                    string corpoEmail = $"Precisa de usuário de rede: {usuarioRede}\n" +
-                                        $"Precisa de usuário MV: {usuarioMV}\n" +
-                                        $"Usuário espelho: {usuarioEspelho}\n" +
-                                        $"Nome Completo: {nome}\n" +
-                                        $"Sexo: {sexo}\n" +
-                                        $"Data de Nascimento: {dataNascimento:dd/MM/yyyy}\n" +
-                                        $"CPF: {cpf}\n" +
-                                        $"RG: {rg}\n" +
-                                        $"Órgão Emissor e UF: {orgaoEmissor}\n" +
-                                        $"Nome da Mãe: {nomeMae}\n" +
-                                        $"Nome do Pai: {nomePai}\n" +
-                                        $"Endereço: {endereco}\n" +
-                                        $"CEP: {cep}\n" +
-                                        $"Função: {funcao}\n" +
-                                        $"Possui Conselho: {possuiConselho}\n" +
-                                        $"{(possuiConselho == "Sim" ? $"Número do Conselho: {numeroConselho}\n" : "")}" +
-                                        $"Setor de Lotação: {setorLotacao}\n" +
-                                        $"Carga Horária: {cargaHoraria}\n" +
-                                        $"Cartão SUS: {cartaoSus}\n" +
-                                        $"E-mail Corporativo: {email}";
-
-                    if (true)
-                    {
-                        ViewBag.Mensagem = "Formulário enviado com sucesso!";
-
-                        var destinatarios = new List<string>
-                        {
-                            "ti.f35@hmtjgo.org.br",
-                            email
-                        };
-
-                        await EnviarEmailAsync(destinatarios, $"Criação de Usuário HEMU ({cpf})", corpoEmail);
-
-                        return RedirectToAction("Index");
-                    }
-                    else
-                    {
-                        ViewBag.CpfNaoEncontrado = true;
-                        return View("Index");
-                    }
-                }
-            }
-
-            ViewBag.CpfNaoEncontrado = true;
-            return View("Index");
+            credential = GoogleCredential.FromStream(stream).CreateScoped(SheetsService.Scope.Spreadsheets);
         }
+
+        var service = new SheetsService(new BaseClientService.Initializer()
+        {
+            HttpClientInitializer = credential,
+            ApplicationName = "Solicitacao Transporte",
+        });
+
+        var dados = new List<object>
+        {
+            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),    // DataHora do envio
+            form["fc"],
+            form["fr"],
+            form["tax"],
+            form["pa"],
+            form["sat"],
+            form.ContainsKey("satNaoAval") ? "Sim" : "Não",  // SatNaoAvaliado (checkbox)
+            form["sensorio"],
+            form["debito_urina"],
+            form["suporte_o2"],
+            form.ContainsKey("fluxo") ? form["fluxo"] : "",
+            form.ContainsKey("fio2") ? form["fio2"] : "",
+            form.ContainsKey("sat_vent") ? form["sat_vent"] : "",
+            form.ContainsKey("peep") ? form["peep"] : "",
+            form.ContainsKey("sat_cpap") ? form["sat_cpap"] : "",
+            form.ContainsKey("peep_cpap") ? form["peep_cpap"] : "",
+            form["isolamento"],
+            form["germe"],
+            form["vaso"],
+            form["nome_vaso"],
+            form["dose_vaso"],
+            form["evolucao"],
+            form["origem"],
+            form["destino"],
+            form["dt_alta"],
+            form["contato_nome"],
+            form["contato_tel"]
+        };
+
+        var range = "NaoRenomear!A1"; // Ajuste se necessário para o nome da sua aba
+
+        var valueRange = new ValueRange
+        {
+            Values = new List<IList<object>> { dados }
+        };
+
+        var appendRequest = service.Spreadsheets.Values.Append(valueRange, _spreadsheetId, range);
+        appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
+
+        await appendRequest.ExecuteAsync();
+
+        TempData["Mensagem"] = "Solicitação enviada com sucesso!";
+    }
+    catch (Exception ex)
+    {
+        TempData["Mensagem"] = $"Erro ao enviar solicitação: {ex.Message}";
+    }
+
+    return RedirectToAction("Index");
+}
     }
 }
