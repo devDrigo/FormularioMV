@@ -184,80 +184,88 @@
 <!-- (...) resto do head e html igual ao seu -->
 
 <script>
-    // Função para limitar quantidade de dígitos
-    function limitarDigitos(input, maxLength) {
-        input.addEventListener('input', function () {
-            if (this.value.length > maxLength) {
-                this.value = this.value.slice(0, maxLength);
-            }
-        });
+  $('#suporteO2').change(function () {
+    const val = $(this).val();
+    const c = $('#suporte-fields');
+    c.empty();
+
+    if (['Óculos nasal ou cateter nasal', 'Campânula', 'Máscara de Venturi ou Hudson', 'Cateter de alto fluxo'].includes(val)) {
+        c.append(`<div class="form-group">
+            <label>Fluxo (L/min)*</label>
+            <div class="input-group">
+                <input type="number" class="form-control" name="fluxo" max="99" required />
+                <div class="input-group-append">
+                    <span class="input-group-text">L/min</span>
+                </div>
+            </div>
+        </div>`);
+    } 
+    else if (['Ventilação mecânica', 'Ventilação não-invasiva'].includes(val)) {
+        c.append(`<div class="form-row">
+            <div class="form-group col-md-4">
+                <label>FiO₂ (%)*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="fio2" max="99" required />
+                    <div class="input-group-append">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-4">
+                <label>Sat O₂ (%)*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="sat_vent" max="999" required />
+                    <div class="input-group-append">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-4">
+                <label>PEEP*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="peep" max="99" required />
+                    <div class="input-group-append">
+                        <span class="input-group-text">cmH₂O</span>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+
+        setTimeout(() => {
+            limitarDigitos(document.querySelector('[name="fio2"]'), 3);
+            limitarDigitos(document.querySelector('[name="sat_vent"]'), 3);
+            limitarDigitos(document.querySelector('[name="peep"]'), 2);
+        }, 100);
+    } 
+    else if (val === 'CPAP') {
+        c.append(`<div class="form-row">
+            <div class="form-group col-md-6">
+                <label>Sat O₂ (%)*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="sat_cpap" max="999" required />
+                    <div class="input-group-append">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <label>PEEP*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="peep_cpap" max="99" required />
+                    <div class="input-group-append">
+                        <span class="input-group-text">cmH₂O</span>
+                    </div>
+                </div>
+            </div>
+        </div>`);
+
+        setTimeout(() => {
+            limitarDigitos(document.querySelector('[name="sat_cpap"]'), 3);
+            limitarDigitos(document.querySelector('[name="peep_cpap"]'), 2);
+        }, 100);
     }
+});
 
-    // Limitar campos fixos na tela inicial
-    document.addEventListener('DOMContentLoaded', function () {
-        limitarDigitos(document.querySelector('[name="fc"]'), 2);
-        limitarDigitos(document.querySelector('[name="fr"]'), 2);
-        limitarDigitos(document.querySelector('[name="tax"]'), 2);
-        limitarDigitos(document.querySelector('[name="sat"]'), 3);
-    });
-
-    // Máscara PA XXX/XXX
-    $('#pa').on('input', function () {
-        this.value = this.value.replace(/\D/g, '').slice(0, 6).replace(/(\d{3})(\d{0,3})/, function (m, p1, p2) {
-            return p1 + (p2 ? '/' + p2 : '');
-        });
-    });
-
-    // Desabilita Sat se Não Avaliado
-    $('#satNaoAval').change(function () {
-        $('#satInput').prop('disabled', this.checked).val(this.checked ? '' : $('#satInput').val());
-    });
-
-    // Exibe campos de suporte conforme seleção
-    $('#suporteO2').change(function () {
-        const val = $(this).val();
-        const c = $('#suporte-fields');
-        c.empty();
-        if (['Óculos nasal ou cateter nasal', 'Campânula', 'Máscara de Venturi ou Hudson', 'Cateter de alto fluxo'].includes(val)) {
-            c.append(`<div class="form-group"><label>Fluxo (L/me)*</label><input type="number" class="form-control" name="fluxo" max="99" required /></div>`);
-        } else if (['Ventilação mecânica', 'Ventilação não-invasiva'].includes(val)) {
-            c.append(`<div class="form-row">
-                <div class="form-group col-md-4"><label>FiO₂ (%)*</label><input type="number" class="form-control" name="fio2" max="99" required /></div>
-                <div class="form-group col-md-4"><label>Sat O₂ (%)*</label><input type="number" class="form-control" name="sat_vent" max="999" required /></div>
-                <div class="form-group col-md-4"><label>PEEP*</label><input type="number" class="form-control" name="peep" max="99" required /></div>
-            </div>`);
-
-            // Limitar dígitos nesses campos também após adicionar
-            setTimeout(() => {
-                limitarDigitos(document.querySelector('[name="fio2"]'), 3);
-                limitarDigitos(document.querySelector('[name="sat_vent"]'), 3);
-                limitarDigitos(document.querySelector('[name="peep"]'), 2);
-            }, 100);
-        } else if (val === 'CPAP') {
-            c.append(`<div class="form-row">
-                <div class="form-group col-md-6"><label>Sat O₂ (%)*</label><input type="number" class="form-control" name="sat_cpap" max="999" required /></div>
-                <div class="form-group col-md-6"><label>PEEP*</label><input type="number" class="form-control" name="peep_cpap" max="99" required /></div>
-            </div>`);
-
-            // Limitar dígitos nesses campos após adicionar
-            setTimeout(() => {
-                limitarDigitos(document.querySelector('[name="sat_cpap"]'), 3);
-                limitarDigitos(document.querySelector('[name="peep_cpap"]'), 2);
-            }, 100);
-        }
-    });
-
-    // Exibe campos de isolamento/drogas
-    $('#isolamentoSel').change(function () {
-        $('#germeContainer').toggle($(this).val() === 'Sim');
-        $('[name="germe"]').prop('required', $(this).val() === 'Sim');
-    });
-
-    $('#vasoSel').change(function () {
-        const show = $(this).val() === 'Sim';
-        $('#vasoFields, #doseFields').toggle(show);
-        $('[name="nome_vaso"], [name="dose_vaso"]').prop('required', show);
-    });
 </script>
 
 </body>
