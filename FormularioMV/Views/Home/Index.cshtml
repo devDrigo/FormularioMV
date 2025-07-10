@@ -14,7 +14,6 @@
     <h2 class="text-center">@ViewData["Title"]</h2>
     <form id="formSolicitacao" method="post" asp-action="Enviar">
 
-        <!-- Aba Sinais Vitais -->
         <h4>Sinais Vitais</h4>
         <div class="form-row">
             <div class="form-group col-md-2">
@@ -97,7 +96,6 @@
 
         <hr />
 
-        <!-- Aba Transporte -->
         <h4>Transporte</h4>
         <div class="form-group">
             <label>Isolamento necessário?*</label>
@@ -143,13 +141,13 @@
         </div>
 
         <div class="form-group">
-            <label>Evolução do caso (evolução clínica, resultados de exames, condutas…)*</label>
+            <label>Evolução do caso*</label>
             <textarea class="form-control" name="evolucao" rows="4" maxlength="3000" required></textarea>
         </div>
 
         <div class="form-row">
             <div class="form-group col-md-4">
-                <label>Unidade de internação origem*</label>
+                <label>Origem*</label>
                 <input type="text" class="form-control" name="origem" required />
             </div>
             <div class="form-group col-md-4">
@@ -157,20 +155,18 @@
                 <input type="text" class="form-control" name="destino" required />
             </div>
             <div class="form-group col-md-4">
-                <label>Data e horário da alta para transporte*</label>
+                <label>Data e horário da alta*</label>
                 <input type="datetime-local" class="form-control" name="dt_alta" required />
             </div>
         </div>
 
-        <hr />
-
-        <h4>Dados para contato</h4>
+        <h4>Contato</h4>
         <div class="form-group">
             <label>Profissional responsável*</label>
             <input type="text" class="form-control" name="contato_nome" required />
         </div>
         <div class="form-group">
-            <label>Telefone para contato*</label>
+            <label>Telefone*</label>
             <input type="tel" class="form-control" name="contato_tel" required />
         </div>
 
@@ -195,49 +191,30 @@
         const c = $('#suporte-fields');
         c.empty();
         if (['Óculos nasal ou cateter nasal', 'Campânula', 'Máscara de Venturi ou Hudson', 'Cateter de alto fluxo'].includes(val)) {
-            c.append(`<div class="form-group"><label>Fluxo (L/me)*</label><div class="input-group"><input type="number" class="form-control" name="fluxo" max="99" required /><div class="input-group-append"><span class="input-group-text">L/me</span></div></div></div>`);
+            c.append(`<div class="form-group"><label>Fluxo (L/me)*</label><input type="number" class="form-control" name="fluxo" max="99" required /></div>`);
         } else if (['Ventilação mecânica', 'Ventilação não-invasiva'].includes(val)) {
             c.append(`<div class="form-row">
-                <div class="form-group col-md-4"><label>FiO₂ (%)*</label><div class="input-group"><input type="number" class="form-control" name="fio2" max="99" required /><div class="input-group-append"><span class="input-group-text">%</span></div></div></div>
-                <div class="form-group col-md-4"><label>Sat O₂ (%)*</label><div class="input-group"><input type="number" class="form-control" name="sat_vent" max="99" required /><div class="input-group-append"><span class="input-group-text">%</span></div></div></div>
+                <div class="form-group col-md-4"><label>FiO₂ (%)*</label><input type="number" class="form-control" name="fio2" max="99" required /></div>
+                <div class="form-group col-md-4"><label>Sat O₂ (%)*</label><input type="number" class="form-control" name="sat_vent" max="99" required /></div>
                 <div class="form-group col-md-4"><label>PEEP*</label><input type="number" class="form-control" name="peep" max="99" required /></div>
             </div>`);
         } else if (val === 'CPAP') {
             c.append(`<div class="form-row">
-                <div class="form-group col-md-6"><label>Sat O₂ (%)*</label><div class="input-group"><input type="number" class="form-control" name="sat_cpap" max="99" required /><div class="input-group-append"><span class="input-group-text">%</span></div></div></div>
+                <div class="form-group col-md-6"><label>Sat O₂ (%)*</label><input type="number" class="form-control" name="sat_cpap" max="99" required /></div>
                 <div class="form-group col-md-6"><label>PEEP*</label><input type="number" class="form-control" name="peep_cpap" max="99" required /></div>
             </div>`);
         }
     });
 
-    // Máscara PA XXX/XXX
     $('#pa').on('input', function () {
         this.value = this.value.replace(/\D/g, '').slice(0, 6).replace(/(\d{3})(\d{0,3})/, function (m, p1, p2) {
             return p1 + (p2 ? '/' + p2 : '');
         });
     });
 
-    // Desabilita Sat se Não Avaliado
     $('#satNaoAval').change(function () {
         $('#satInput').prop('disabled', this.checked).val(this.checked ? '' : $('#satInput').val());
     });
-
-    // Limita quantidade de dígitos nos campos numéricos
-    function limitarDigitos(input, maxLength) {
-        input.addEventListener('input', function () {
-            if (this.value.length > maxLength) {
-                this.value = this.value.slice(0, maxLength);
-            }
-        });
-    }
-
-    // Aplicar limitações
-    limitarDigitos(document.querySelector('[name="fc"]'), 3);
-    limitarDigitos(document.querySelector('[name="fr"]'), 2);
-    limitarDigitos(document.querySelector('[name="tax"]'), 2);
-    limitarDigitos(document.querySelector('[name="sat"]'), 3);
-
 </script>
-
 </body>
 </html>
