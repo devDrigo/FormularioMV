@@ -1,206 +1,226 @@
 @{
-  ViewData["Title"] = "Sinais Vitais e Transporte";
+    ViewData["Title"] = "Solicitação de Transporte";
 }
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>@ViewData["Title"]</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
 <body>
-  <div class="container py-4">
+<div class="container py-4">
     <h2 class="text-center">@ViewData["Title"]</h2>
-    <form id="formTotais" method="post" asp-action="Enviar">
-    
-      <!-- Aba Sinais vitais -->
-      <h4>Sinais vitais</h4>
-      <div class="form-row">
-        <div class="form-group col-md-2">
-          <label>FC (bpm)*</label>
-          <input type="number" class="form-control" name="fc" max="999" required /> bpm
-        </div>
-        <div class="form-group col-md-2">
-          <label>FR (ipm)*</label>
-          <input type="number" class="form-control" name="fr" max="99" required /> ipm
-        </div>
-        <div class="form-group col-md-2">
-          <label>Tax (°C)*</label>
-          <input type="number" class="form-control" name="tax" max="99" step="0.1" required /> °C
-        </div>
-        <div class="form-group col-md-3">
-          <label>PA (mm Hg)*</label>
-          <input type="text" class="form-control" name="pa" pattern="\d{1,3}/\d{1,3}" required placeholder="XXX/XXX" />
-        </div>
-        <div class="form-group col-md-3">
-          <label>Sat O₂ (%)*</label><br/>
-          <input type="number" class="form-control d-inline-block w-auto" name="sat" max="999" required /> %
-          <div class="form-check form-check-inline ml-2">
-            <input class="form-check-input" type="checkbox" name="sat_nao_aval" id="satNaoAval">
-            <label class="form-check-label" for="satNaoAval">Não avaliado</label>
-          </div>
-        </div>
-      </div>
+    <form id="formSolicitacao" method="post" asp-action="Enviar">
 
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label>Sensório*</label>
-          <select class="form-control" name="sensorio" required>
-            <option>Alerta</option>
-            <option>Responde a comando de voz</option>
-            <option>Responde a dor</option>
-            <option>Não responde a nada</option>
-            <option>Não avaliado</option>
-          </select>
+        <!-- Aba Sinais Vitais -->
+        <h4>Sinais Vitais</h4>
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <label>FC*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="fc" max="999" required />
+                    <div class="input-group-append"><span class="input-group-text">bpm</span></div>
+                </div>
+            </div>
+            <div class="form-group col-md-2">
+                <label>FR*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="fr" max="99" required />
+                    <div class="input-group-append"><span class="input-group-text">ipm</span></div>
+                </div>
+            </div>
+            <div class="form-group col-md-2">
+                <label>Tax*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="tax" max="99" step="0.1" required />
+                    <div class="input-group-append"><span class="input-group-text">°C</span></div>
+                </div>
+            </div>
+            <div class="form-group col-md-3">
+                <label>PA*</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="pa" id="pa" placeholder="000/000" required />
+                    <div class="input-group-append"><span class="input-group-text">mm Hg</span></div>
+                </div>
+            </div>
+            <div class="form-group col-md-3">
+                <label>Sat O₂*</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="sat" max="999" id="satInput" required />
+                    <div class="input-group-append"><span class="input-group-text">%</span></div>
+                </div>
+                <div class="form-check mt-1">
+                    <input class="form-check-input" type="checkbox" id="satNaoAval">
+                    <label class="form-check-label" for="satNaoAval">Não avaliado</label>
+                </div>
+            </div>
         </div>
-        <div class="form-group col-md-6">
-          <label>Débito urinário*</label>
-          <select class="form-control" name="debito_urina" required>
-            <option>Normal</option>
-            <option>Oligúria &lt;0,5ml/kg/h</option>
-            <option>Anúria</option>
-            <option>Não avaliado</option>
-          </select>
+
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label>Sensório*</label>
+                <select class="form-control" name="sensorio" required>
+                    <option>Alerta</option>
+                    <option>Responde a comando de voz</option>
+                    <option>Responde a dor</option>
+                    <option>Não responde a nada</option>
+                    <option>Não avaliado</option>
+                </select>
+            </div>
+            <div class="form-group col-md-6">
+                <label>Débito urinário*</label>
+                <select class="form-control" name="debito_urina" required>
+                    <option>Normal</option>
+                    <option>Oligúria &lt;0,5ml/kg/h</option>
+                    <option>Anúria</option>
+                    <option>Não avaliado</option>
+                </select>
+            </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label>Suporte O₂*</label>
-        <select class="form-control" id="suporteO2" name="suporte_o2" required>
-          <option>Ar ambiente</option>
-          <option>Óculos nasal ou cateter nasal</option>
-          <option>Campânula</option>
-          <option>Máscara de Venturi ou Hudson</option>
-          <option>Ventilação mecânica</option>
-          <option>Ventilação não-invasiva</option>
-          <option>Cateter de alto fluxo</option>
-          <option>CPAP</option>
-        </select>
-      </div>
-
-      <div id="suporte-fields"></div>
-
-      <hr/>
-
-      <!-- Aba Transporte -->
-      <h4>Transporte e evolução</h4>
-      <div class="form-group">
-        <label>Isolamento necessário?*</label>
-        <select class="form-control" id="isolamentoSel" name="isolamento" required>
-          <option value="Não">Não</option>
-          <option value="Sim">Sim</option>
-        </select>
-      </div>
-      <div class="form-group" id="germeContainer" style="display:none;">
-        <label>Germe*</label>
-        <select class="form-control" name="germe">
-          <option>Rubéola</option>
-          <option>Sarampo</option>
-          <option>Varicela</option>
-          <option>Zoster disseminado</option>
-          <option>Outros</option>
-          <option>Bactéria multirresistente</option>
-          <option>Clostridium difficille</option>
-          <option>Coqueluche</option>
-          <option>Tuberculose pulmonar bacilífera (M. tuberculosis)</option>
-          <option>Vírus Sincicial Respiratório ou Parainfluenza</option>
-          <option>Isolamento protetor</option>
-          <option>Doença Meningocócica</option>
-        </select>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group col-md-4">
-          <label>Drogas vasoativas?*</label>
-          <select class="form-control" id="vasoSel" name="vaso" required>
-            <option value="Não">Não</option>
-            <option value="Sim">Sim</option>
-          </select>
+        <div class="form-group">
+            <label>Suporte O₂*</label>
+            <select class="form-control" id="suporteO2" name="suporte_o2" required>
+                <option>Ar ambiente</option>
+                <option>Óculos nasal ou cateter nasal</option>
+                <option>Campânula</option>
+                <option>Máscara de Venturi ou Hudson</option>
+                <option>Ventilação mecânica</option>
+                <option>Ventilação não-invasiva</option>
+                <option>Cateter de alto fluxo</option>
+                <option>CPAP</option>
+            </select>
         </div>
-        <div class="form-group col-md-4" id="vasoFields" style="display:none;">
-          <label>Nome da droga*</label>
-          <input type="text" class="form-control" name="nome_vaso" />
-        </div>
-        <div class="form-group col-md-4" id="doseFields" style="display:none;">
-          <label>Dosagem*</label>
-          <input type="text" class="form-control" name="dose_vaso" />
-        </div>
-      </div>
+        <div id="suporte-fields"></div>
 
-      <div class="form-group">
-        <label>Evolução do caso* (máx 3000 caracteres)</label>
-        <textarea class="form-control" name="evolucao" rows="4" maxlength="3000" required></textarea>
-      </div>
+        <hr />
 
-      <div class="form-row">
-        <div class="form-group col-md-4">
-          <label>Unidade de internação origem*</label>
-          <input type="text" class="form-control" name="origem" required />
+        <!-- Aba Transporte -->
+        <h4>Transporte</h4>
+        <div class="form-group">
+            <label>Isolamento necessário?*</label>
+            <select class="form-control" id="isolamentoSel" name="isolamento" required>
+                <option value="Não">Não</option>
+                <option value="Sim">Sim</option>
+            </select>
         </div>
-        <div class="form-group col-md-4">
-          <label>Destino*</label>
-          <input type="text" class="form-control" name="destino" required />
+        <div class="form-group" id="germeContainer" style="display:none;">
+            <label>Germe*</label>
+            <select class="form-control" name="germe">
+                <option>Rubéola</option>
+                <option>Sarampo</option>
+                <option>Varicela</option>
+                <option>Zoster disseminado</option>
+                <option>Outros</option>
+                <option>Bactéria multirresistente</option>
+                <option>Clostridium difficille</option>
+                <option>Coqueluche</option>
+                <option>Tuberculose pulmonar bacilífera (mycobacterium tuberculosis)</option>
+                <option>Vírus Sincicial Respiratório ou Vírus Parainfluenza</option>
+                <option>Isolamento protetor</option>
+                <option>Doença Meningocócica</option>
+            </select>
         </div>
-        <div class="form-group col-md-4">
-          <label>Data e horário da alta*</label>
-          <input type="datetime-local" class="form-control" name="dt_alta" required />
+
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label>Drogas vasoativas?*</label>
+                <select class="form-control" id="vasoSel" name="vaso" required>
+                    <option value="Não">Não</option>
+                    <option value="Sim">Sim</option>
+                </select>
+            </div>
+            <div class="form-group col-md-4" id="vasoFields" style="display:none;">
+                <label>Nome da droga*</label>
+                <input type="text" class="form-control" name="nome_vaso" />
+            </div>
+            <div class="form-group col-md-4" id="doseFields" style="display:none;">
+                <label>Dosagem*</label>
+                <input type="text" class="form-control" name="dose_vaso" />
+            </div>
         </div>
-      </div>
 
-      <hr/>
+        <div class="form-group">
+            <label>Evolução do caso (evolução clínica, resultados de exames, condutas…)*</label>
+            <textarea class="form-control" name="evolucao" rows="4" maxlength="3000" required></textarea>
+        </div>
 
-      <!-- Aba Dados para contato -->
-      <h4>Dados para contato</h4>
-      <div class="form-group">
-        <label>Profissional responsável*</label>
-        <input type="text" class="form-control" name="contato_nome" required />
-      </div>
-      <div class="form-group">
-        <label>Telefone para contato*</label>
-        <input type="tel" class="form-control" name="contato_tel" required />
-      </div>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label>Unidade de internação origem*</label>
+                <input type="text" class="form-control" name="origem" required />
+            </div>
+            <div class="form-group col-md-4">
+                <label>Destino*</label>
+                <input type="text" class="form-control" name="destino" required />
+            </div>
+            <div class="form-group col-md-4">
+                <label>Data e horário da alta para transporte*</label>
+                <input type="datetime-local" class="form-control" name="dt_alta" required />
+            </div>
+        </div>
 
-      <button type="submit" class="btn btn-primary">Enviar</button>
+        <hr />
+
+        <h4>Dados para contato</h4>
+        <div class="form-group">
+            <label>Profissional responsável*</label>
+            <input type="text" class="form-control" name="contato_nome" required />
+        </div>
+        <div class="form-group">
+            <label>Telefone para contato*</label>
+            <input type="tel" class="form-control" name="contato_tel" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enviar</button>
     </form>
-  </div>
+</div>
 
-  <script>
-    document.getElementById('isolamentoSel').addEventListener('change', e => {
-      document.getElementById('germeContainer').style.display = e.target.value === 'Sim' ? 'block' : 'none';
-      document.querySelector('[name="germe"]').required = e.target.value === 'Sim';
+<script>
+    $('#isolamentoSel').change(function () {
+        $('#germeContainer').toggle($(this).val() === 'Sim');
+        $('[name="germe"]').prop('required', $(this).val() === 'Sim');
     });
 
-    document.getElementById('vasoSel').addEventListener('change', e => {
-      const show = e.target.value === 'Sim';
-      document.getElementById('vasoFields').style.display = show ? 'block' : 'none';
-      document.getElementById('doseFields').style.display = show ? 'block' : 'none';
-      document.querySelector('[name="nome_vaso"]').required = show;
-      document.querySelector('[name="dose_vaso"]').required = show;
+    $('#vasoSel').change(function () {
+        const show = $(this).val() === 'Sim';
+        $('#vasoFields, #doseFields').toggle(show);
+        $('[name="nome_vaso"], [name="dose_vaso"]').prop('required', show);
     });
 
-    const suporteSel = document.getElementById('suporteO2');
-    suporteSel.addEventListener('change', () => {
-      const c = document.getElementById('suporte-fields');
-      c.innerHTML = ''; // limpa
-      const v = suporteSel.value;
-      // logic for fields
-      if (['Óculos nasal ou cateter nasal','Campânula','Máscara de Venturi ou Hudson','Cateter de alto fluxo'].includes(v)) {
-        c.innerHTML = `<div class="form-group"><label>Fluxo (L/me)*</label><input type="number" class="form-control" name="fluxo" max="99" required /></div>`;
-      } else if (v === 'Ventilação mecânica' || v === 'Ventilação não-invasiva') {
-        c.innerHTML = `
-          <div class="form-row">
-            <div class="form-group col-md-4"><label>FiO₂ (%)*</label><input type="number" class="form-control" name="fio2" max="99" required /></div>
-            <div class="form-group col-md-4"><label>Sat O₂ (%)*</label><input type="number" class="form-control" name="sat_vent" max="99" required /></div>
-            <div class="form-group col-md-4"><label>PEEP* </label><input type="number" class="form-control" name="peep" max="99" required /></div>
-          </div>`;
-      } else if (v === 'CPAP') {
-        c.innerHTML = `
-          <div class="form-row">
-            <div class="form-group col-md-6"><label>Sat O₂ (%)*</label><input type="number" class="form-control" name="sat_cpap" max="99" required /></div>
-            <div class="form-group col-md-6"><label>PEEP*</label><input type="number" class="form-control" name="peep_cpap" max="99" required /></div>
-          </div>`;
-      }
+    $('#suporteO2').change(function () {
+        const val = $(this).val();
+        const c = $('#suporte-fields');
+        c.empty();
+        if (['Óculos nasal ou cateter nasal', 'Campânula', 'Máscara de Venturi ou Hudson', 'Cateter de alto fluxo'].includes(val)) {
+            c.append(`<div class="form-group"><label>Fluxo (L/me)*</label><div class="input-group"><input type="number" class="form-control" name="fluxo" max="99" required /><div class="input-group-append"><span class="input-group-text">L/me</span></div></div></div>`);
+        } else if (['Ventilação mecânica', 'Ventilação não-invasiva'].includes(val)) {
+            c.append(`<div class="form-row">
+                <div class="form-group col-md-4"><label>FiO₂ (%)*</label><div class="input-group"><input type="number" class="form-control" name="fio2" max="99" required /><div class="input-group-append"><span class="input-group-text">%</span></div></div></div>
+                <div class="form-group col-md-4"><label>Sat O₂ (%)*</label><div class="input-group"><input type="number" class="form-control" name="sat_vent" max="99" required /><div class="input-group-append"><span class="input-group-text">%</span></div></div></div>
+                <div class="form-group col-md-4"><label>PEEP*</label><input type="number" class="form-control" name="peep" max="99" required /></div>
+            </div>`);
+        } else if (val === 'CPAP') {
+            c.append(`<div class="form-row">
+                <div class="form-group col-md-6"><label>Sat O₂ (%)*</label><div class="input-group"><input type="number" class="form-control" name="sat_cpap" max="99" required /><div class="input-group-append"><span class="input-group-text">%</span></div></div></div>
+                <div class="form-group col-md-6"><label>PEEP*</label><input type="number" class="form-control" name="peep_cpap" max="99" required /></div>
+            </div>`);
+        }
     });
-  </script>
+
+    // Máscara PA XXX/XXX
+    $('#pa').on('input', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 6).replace(/(\d{3})(\d{0,3})/, function (m, p1, p2) {
+            return p1 + (p2 ? '/' + p2 : '');
+        });
+    });
+
+    // Desabilita Sat se Não Avaliado
+    $('#satNaoAval').change(function () {
+        $('#satInput').prop('disabled', this.checked).val(this.checked ? '' : $('#satInput').val());
+    });
+</script>
 </body>
 </html>
