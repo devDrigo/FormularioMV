@@ -221,6 +221,13 @@
     $('#satNaoAval').change(function () {
         $('#satInput').prop('disabled', this.checked).val(this.checked ? '' : $('#satInput').val());
     });
+
+// Aplicar limitações
+limitarDigitos(document.querySelector('[name="fc"]'), 3);
+limitarDigitos(document.querySelector('[name="fr"]'), 2);
+limitarDigitos(document.querySelector('[name="tax"]'), 2);
+limitarDigitos(document.querySelector('[name="sat"]'), 3);
+
 </script>
 // Limita quantidade de dígitos nos campos numéricos
 function limitarDigitos(input, maxLength) {
@@ -231,11 +238,6 @@ function limitarDigitos(input, maxLength) {
     });
 }
 
-// Aplicar limitações
-limitarDigitos(document.querySelector('[name="fc"]'), 3);
-limitarDigitos(document.querySelector('[name="fr"]'), 2);
-limitarDigitos(document.querySelector('[name="tax"]'), 2);
-limitarDigitos(document.querySelector('[name="sat"]'), 3);
 
 </body>
 </html>
