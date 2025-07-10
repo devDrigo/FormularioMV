@@ -300,6 +300,18 @@
         $('#satInput').prop('disabled', this.checked).val(this.checked ? '' : $('#satInput').val());
     });
 
+ // Exibe campos de isolamento/drogas
+    $('#isolamentoSel').change(function () {
+        $('#germeContainer').toggle($(this).val() === 'Sim');
+        $('[name="germe"]').prop('required', $(this).val() === 'Sim');
+    });
+
+    $('#vasoSel').change(function () {
+        const show = $(this).val() === 'Sim';
+        $('#vasoFields, #doseFields').toggle(show);
+        $('[name="nome_vaso"], [name="dose_vaso"]').prop('required', show);
+    });
+
 
 </script>
 
