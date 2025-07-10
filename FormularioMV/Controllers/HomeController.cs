@@ -45,36 +45,32 @@ public async Task<IActionResult> Enviar(Microsoft.AspNetCore.Http.IFormCollectio
             ApplicationName = "Solicitacao Transporte",
         });
 
-        var dados = new List<object>
-        {
-            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),    // DataHora do envio
-            form["fc"],
-            form["fr"],
-            form["tax"],
-            form["pa"],
-            form["sat"],
-            form.ContainsKey("satNaoAval") ? "Sim" : "Não",  // SatNaoAvaliado (checkbox)
-            form["sensorio"],
-            form["debito_urina"],
-            form["suporte_o2"],
-            form.ContainsKey("fluxo") ? form["fluxo"] : "",
-            form.ContainsKey("fio2") ? form["fio2"] : "",
-            form.ContainsKey("sat_vent") ? form["sat_vent"] : "",
-            form.ContainsKey("peep") ? form["peep"] : "",
-            form.ContainsKey("sat_cpap") ? form["sat_cpap"] : "",
-            form.ContainsKey("peep_cpap") ? form["peep_cpap"] : "",
-            form["isolamento"],
-            form["germe"],
-            form["vaso"],
-            form["nome_vaso"],
-            form["dose_vaso"],
-            form["evolucao"],
-            form["origem"],
-            form["destino"],
-            form["dt_alta"],
-            form["contato_nome"],
-            form["contato_tel"]
-        };
+var dados = new List<object>
+{
+    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),  // Data e hora atual
+    "80",    // FC
+    "18",    // FR
+    "36.5",  // Tax
+    "120/80",// PA
+    "98",    // Sat
+    "Não",   // SatNaoAvaliado
+    "Alerta",// Sensorio
+    "Normal",// DebitoUrinario
+    "Ar ambiente", // SuporteO2
+    "", "", "", "", "", "", // Campos de suporte O2 opcionais (fluxo, fio2, etc)
+    "Não",   // Isolamento
+    "",      // Germe
+    "Não",   // DrogasVasoativas
+    "",      // NomeDroga
+    "",      // Dosagem
+    "Paciente está estável.", // Evolucao
+    "Unidade A",  // Origem
+    "Unidade B",  // Destino
+    DateTime.Now.AddHours(2).ToString("yyyy-MM-ddTHH:mm"), // DataHoraAlta (formato datetime-local)
+    "Dr. Fulano", // ProfissionalResponsavel
+    "(11) 99999-9999" // TelefoneContato
+};
+
 
         var range = "NaoRenomear!A1"; // Ajuste se necessário para o nome da sua aba
 
