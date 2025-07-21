@@ -101,14 +101,26 @@
         <hr />
 
         <h4>Transporte</h4>
-        <div class="form-group">
-            <label>Isolamento necessário?*</label>
-            <select class="form-control" id="isolamentoSel" name="isolamento" required>
-                <option value="" selected disabled>Selecione...</option>
-                <option value="Não">Não</option>
-                <option value="Sim">Sim</option>
-            </select>
-        </div>
+<div class="form-row">
+    <div class="form-group col-md-6">
+        <label>Tipo de transporte/suporte*</label>
+        <select class="form-control" name="tipo_transporte" required>
+            <option value="" selected disabled>Selecione...</option>
+            <option>Unidade de Suporte Básico - USB</option>
+            <option>Unidade de Suporte Avançado - USA</option>
+        </select>
+    </div>
+
+    <div class="form-group col-md-6">
+        <label>Isolamento necessário?*</label>
+        <select class="form-control" id="isolamentoSel" name="isolamento" required>
+            <option value="" selected disabled>Selecione...</option>
+            <option value="Não">Não</option>
+            <option value="Sim">Sim</option>
+        </select>
+    </div>
+</div>
+
         <div class="form-group" id="germeContainer" style="display:none;">
             <label>Germe*</label>
             <select class="form-control" name="germe">
