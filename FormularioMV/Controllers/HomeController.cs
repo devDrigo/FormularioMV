@@ -51,37 +51,39 @@ public async Task<IActionResult> Enviar(Microsoft.AspNetCore.Http.IFormCollectio
         bool satNaoAval = Has("satNaoAval");
 
         var dados = new List<object>
-        {
-            DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            $"{Get("fc")} bpm",
-            $"{Get("fr")} ipm",
-            $"{Get("tax")} °C",
-            $"{Get("pa")} mmHg",
-            satNaoAval ? "Não avaliado" : $"{Get("sat")} %",
-            satNaoAval ? "Sim" : "Não",
-            Get("sensorio"),
-            Get("debito_urina"),
-            Get("suporte_o2"),
+{
+    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+    $"{Get("fc")} bpm",
+    $"{Get("fr")} ipm",
+    $"{Get("tax")} °C",
+    $"{Get("pa")} mmHg",
+    satNaoAval ? "Não avaliado" : $"{Get("sat")} %",
+    satNaoAval ? "Sim" : "Não",
+    Get("sensorio"),
+    Get("debito_urina"),
+    Get("suporte_o2"),
 
-            Has("fluxo") ? $"{Get("fluxo")} L/min" : "",
-            Has("fio2") ? $"{Get("fio2")} %" : "",
-            Has("sat_vent") ? $"{Get("sat_vent")} %" : "",
-            Has("peep") ? $"{Get("peep")} cmH₂O" : "",
-            Has("sat_cpap") ? $"{Get("sat_cpap")} %" : "",
-            Has("peep_cpap") ? $"{Get("peep_cpap")} cmH₂O" : "",
+    Has("fluxo") ? $"{Get("fluxo")} L/min" : "",
+    Has("fio2") ? $"{Get("fio2")} %" : "",
+    Has("sat_vent") ? $"{Get("sat_vent")} %" : "",
+    Has("peep") ? $"{Get("peep")} cmH₂O" : "",
+    Has("sat_cpap") ? $"{Get("sat_cpap")} %" : "",
+    Has("peep_cpap") ? $"{Get("peep_cpap")} cmH₂O" : "",
 
-            Get("isolamento"),
-            Get("germe"),
-            Get("vaso"),
-            Get("nome_vaso"),
-            Get("dose_vaso"),
-            Get("evolucao"),
-            Get("origem"),
-            Get("destino"),
-            Get("dt_alta"),
-            Get("contato_nome"),
-            Get("contato_tel")
-        };
+    Get("tipo_transporte"), // <- novo campo aqui
+    Get("isolamento"),
+    Get("germe"),
+    Get("vaso"),
+    Get("nome_vaso"),
+    Get("dose_vaso"),
+    Get("evolucao"),
+    Get("origem"),
+    Get("destino"),
+    Get("dt_alta"),
+    Get("contato_nome"),
+    Get("contato_tel")
+};
+
 
         // Debug log (opcional)
         System.Diagnostics.Debug.WriteLine("Dados a enviar: " + string.Join(", ", dados));
