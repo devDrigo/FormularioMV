@@ -42,7 +42,7 @@ namespace SeuProjeto.Controllers
                 try
                 {
                     await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                    await smtp.AuthenticateAsync("solicitacaomv@gmail.com", "qleewbvdakggmvrk"); // senha de app
+                    await smtp.AuthenticateAsync("solicitacaomv@gmail.com", "bhqulxrxoubcsbyx"); // senha de app
                     await smtp.SendAsync(mensagem);
                 }
                 finally
