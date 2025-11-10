@@ -24,32 +24,8 @@ namespace SeuProjeto.Controllers
 
         private async Task EnviarEmailAsync(List<string> destinatarios, string assunto, string corpo)
         {
-            var mensagem = new MimeMessage();
-            mensagem.From.Add(new MailboxAddress("Solicitação Transporte", "solicitacaomv@gmail.com"));
 
-            foreach (var dest in destinatarios)
-                mensagem.To.Add(new MailboxAddress("", dest));
-
-            mensagem.Subject = assunto;
-
-            mensagem.Body = new TextPart("plain")
-            {
-                Text = corpo
-            };
-
-            using (var smtp = new SmtpClient())
-            {
-                try
-                {
-                    await smtp.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                    await smtp.AuthenticateAsync("solicitacaomv@gmail.com", "bhqulxrxoubcsbyx"); // senha de app
-                    await smtp.SendAsync(mensagem);
-                }
-                finally
-                {
-                    await smtp.DisconnectAsync(true);
-                }
-            }
+            
         }
 
         [HttpPost]
