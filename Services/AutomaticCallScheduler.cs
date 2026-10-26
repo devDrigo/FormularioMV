@@ -143,10 +143,16 @@ public sealed class AutomaticCallScheduler : BackgroundService
 
     private async Task<int> ProcessarConfiguracaoAsync(AutomaticCallConfig c, JsonElement? evento, CancellationToken ct)
     {
+        var regra = _store.Read().Regras.FirstOrDefault(x => x.Id == c.RegraId);
+        var condicoes = regra?.Condicoes ?? new();
+        // Automação de horário simples: não depende de aba nem de regra.
+        if (condicoes.Count == 0)
+        {
+            var numeroFixo = await AbrirAsync(c, c.Titulo ?? c.Nome, c.Descricao ?? c.Nome, ct);
+            return string.IsNullOrWhiteSpace(numeroFixo) ? 0 : 1;
+        }
         var aba = c.AbaFonte; if (string.IsNullOrWhiteSpace(aba)) return 0;
         var dados = await LerAbaAsync(aba, ct); if (dados == null) return 0;
-        var regra = _store.Read().Regras.FirstOrDefault(x => x.Id == c.RegraId);
-        var condicoes = regra?.Condicoes ?? new(); if (condicoes.Count == 0) { var numeroFixo = await AbrirAsync(c, c.Titulo ?? c.Nome, c.Descricao ?? c.Nome, ct); return string.IsNullOrWhiteSpace(numeroFixo) ? 0 : 1; }
         var indices = dados.Cabecalhos.Select((x, i) => new { Nome = x.Trim(), I = i }).GroupBy(x => x.Nome, StringComparer.OrdinalIgnoreCase).ToDictionary(x => x.Key, x => x.First().I, StringComparer.OrdinalIgnoreCase);
         var colunaRetorno = EncontrarColuna(indices, c.ColunaNumeroChamado); if (!string.IsNullOrWhiteSpace(c.ColunaNumeroChamado) && colunaRetorno < 0) return 0;
         var inicio = dados.PrimeiraLinhaDados; var quantidade = 0;
