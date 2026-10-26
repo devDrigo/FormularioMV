@@ -634,8 +634,8 @@ namespace FluigPainel.Controllers
             if (!string.IsNullOrWhiteSpace(esperado) && !string.Equals(Request.Headers["X-Api-Key"].ToString(), esperado, StringComparison.Ordinal)) return Unauthorized();
             using var doc = await System.Text.Json.JsonDocument.ParseAsync(Request.Body, cancellationToken: HttpContext.RequestAborted);
             var tipo = doc.RootElement.TryGetProperty("tipo", out var t) ? t.GetString() ?? "evento" : "evento";
-            var resultado = await _automaticCallScheduler.ProcessarNotificacaoAsync(tipo, doc.RootElement, HttpContext.RequestAborted);
-            return Json(resultado);
+            var enfileirado = _automaticCallScheduler.EnfileirarNotificacao(tipo, doc.RootElement);
+            return StatusCode(202, new { success = enfileirado, enfileirado, tipo, mensagem = "Evento recebido; processamento continuará no programa." });
         }
 
         [HttpGet]

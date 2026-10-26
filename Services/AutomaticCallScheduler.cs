@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using FluigPainel.Models;
 
 namespace FluigPainel.Services;
@@ -20,6 +21,7 @@ public sealed class AutomaticCallScheduler : BackgroundService
     private readonly TimeZoneInfo _tz;
     private readonly SemaphoreSlim _ciclo = new(1, 1);
     private readonly SemaphoreSlim _usuarioLock = new(1, 1);
+    private readonly Channel<(string Tipo, JsonElement Evento)> _filaNotificacoes = Channel.CreateUnbounded<(string, JsonElement)>();
     private DadosUsuarioFluig? _usuarioCache;
     private DateTime _usuarioCacheExpiraUtc;
     private DateTime _ultimaSincronizacaoUtc = DateTime.MinValue;
@@ -42,14 +44,24 @@ public sealed class AutomaticCallScheduler : BackgroundService
             await ProcessarNotificacaoAsync("inicio", null, stoppingToken);
         }
         catch (Exception ex) { _logger.LogError(ex, "Falha na sincronização inicial das automações"); }
-        // Não há polling: o Web Service dorme quando o Render não recebe eventos.
-        await Task.Delay(Timeout.InfiniteTimeSpan, stoppingToken);
+        // Os eventos recebidos pelo endpoint entram nesta fila. O endpoint responde
+        // imediatamente ao Apps Script; a abertura continua sendo feita no C#.
+        await foreach (var item in _filaNotificacoes.Reader.ReadAllAsync(stoppingToken))
+        {
+            try { await ProcessarNotificacaoAsync(item.Tipo, item.Evento, stoppingToken); }
+            catch (Exception ex) { _logger.LogError(ex, "Falha ao processar evento enfileirado {Tipo}", item.Tipo); }
+        }
     }
 
     public async Task<bool> SincronizarPlanilhaAgoraAsync(CancellationToken ct = default)
     {
         try { return await SincronizarPlanilhaAsync(ct, true); }
         catch (Exception ex) { _logger.LogWarning(ex, "Falha ao sincronizar a planilha"); return false; }
+    }
+
+    public bool EnfileirarNotificacao(string tipo, JsonElement evento)
+    {
+        return _filaNotificacoes.Writer.TryWrite((tipo, evento.Clone()));
     }
 
     public async Task<object> ProcessarNotificacaoAsync(string tipo, JsonElement? evento, CancellationToken ct = default)
