@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: painel35
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: FLUIG_VIEW_LOGIN
+        sync: false
+      - key: FLUIG_VIEW_PASSWORD
+        sync: false
+      - key: AUTOMATIC_CALLS_DATA_DIR
+        sync: false
+      - key: FUNCIONARIOS_API_KEY
+        sync: false
+      - key: PLANILHA_SYNC_WEBAPP_URL
+        sync: false
+      - key: PLANILHA_SYNC_TOKEN
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: DATA_PROTECTION_KEYS_DIR
+        sync: false
+      - key: TIME_ZONE_ID
+        sync: false

@@ -1,0 +1,1445 @@
+@model FluigPainel.Models.FluigResponseUnificado
+@{
+    Layout = null;
+    ViewData["Title"] = "Painel Unificado - Fluig";
+
+    int refreshSeconds = Model.RefreshSeconds > 0 ? Model.RefreshSeconds : 30;
+    var fluigBaseUrl = "https://fluig.hmtj.org.br:8443/portal/p/1/pageworkflowview?app_ecm_workflowview_detailsProcessInstanceID=";
+
+    bool usuarioLogado = !string.IsNullOrWhiteSpace(ViewBag.UsuarioCentral as string);
+
+    bool EstaAtrasado(string prazoTarefa)
+    {
+        if (string.IsNullOrEmpty(prazoTarefa)) return false;
+        var prazoLimpo = prazoTarefa.Replace("Até ", "").Trim();
+        if (DateTime.TryParseExact(prazoLimpo, "dd/MM/yyyy HH:mm", 
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var dataPrazo))
+        {
+            return DateTime.Now > dataPrazo;
+        }
+        return false;
+    }
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Painel Unificado - Fluig</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: white;
+            color: #1f2937;
+            min-width: 320px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            width: 100%;
+            padding: 0 8px;
+            flex: 1;
+        }
+
+        .status-tabs { display:flex; gap:6px; align-items:center; padding:8px 0 10px; border-bottom:1px solid #e2e8f0; overflow-x:auto; }
+        .global-refresh-bar { display:none; }
+        .section-header > .btn-auto-refresh { margin-left:auto; align-self:center; }
+        .status-tab { border:1px solid #cbd5e1; background:#f8fafc; color:#334155; border-radius:7px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+        .status-tab.active { background:#1e40af; border-color:#1e40af; color:#fff; }
+        .status-tab .count { margin-left:5px; opacity:.8; }
+        .status-panel { display:none; }
+        .status-panel.active { display:block; }
+        .logged-user { margin-left:auto; color:#475569; font-size:11px; white-space:nowrap; }
+
+        /* HEADER DE CADA SEÇÃO */
+        .section-header {
+            background: #1e40af;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px 0 0 0;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #1e3a8a;
+            border-bottom: none;
+            width: 100%;
+        }
+
+        .section-header.aguardando {
+            background: #d97706;
+            border-color: #b45309;
+        }
+
+        .section-header.ematendimento {
+            background: #059669;
+            border-color: #047857;
+        }
+
+        .section-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .left-controls {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contador {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+            color: white;
+        }
+
+        /* BOTÃO AUTO-REFRESH - apenas no primeiro header */
+        .btn-auto-refresh {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-auto-refresh:hover {
+            transform: translateY(calc(-50% - 1px));
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-auto-refresh.active {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+
+        .btn-auto-refresh.active:hover {
+            background: rgba(16, 185, 129, 1);
+        }
+
+        .btn-auto-refresh.inactive {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+
+        .btn-auto-refresh.inactive:hover {
+            background: rgba(239, 68, 68, 1);
+        }
+
+        .refresh-timer {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .btn-auto-refresh.active.refreshing .refresh-timer {
+            color: #fbbf24;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        @@keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .content {
+            padding: 0 0 8px 0;
+            width: 100%;
+        }
+
+        /* Tabelas */
+        .table-container {
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 0 0 8px 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            display: flex;
+            flex-direction: column;
+        }
+
+        thead, tbody {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        thead tr,
+        tbody tr {
+            display: flex;
+            width: 100%;
+        }
+
+        tbody tr {
+            min-height: 36px;
+        }
+
+        thead tr {
+            height: 20px;
+            min-height: 20px;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        th, td {
+            border-right: 1px solid #f3f4f6;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            padding: 0 3px;
+            text-align: center;
+            font-weight: 700;
+            color: #000000;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1px;
+            height: 20px;
+            white-space: nowrap;
+            background: #f1f5f9;
+            justify-content: center;
+        }
+
+        td {
+            padding: 2px 4px;
+            font-size: 11.5px;
+            min-height: 34px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Classe para linha atrasada - TODOS OS TEXTOS FICAM VERMELHOS */
+        .linha-atrasada .codigo,
+        .linha-atrasada .detalhe,
+        .linha-atrasada .solicitante,
+        .linha-atrasada .abertura,
+        .linha-atrasada .prazo,
+        .linha-atrasada .responsavel {
+            color: #dc2626 !important;
+        }
+
+        .responsavel {
+            font-weight: 700;
+            color: #000000;
+            font-size: 11px;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* LARGURAS DAS COLUNAS */
+        .col-codigo {
+            flex: 0 0 70px;
+            justify-content: center;
+            min-width: 70px;
+            max-width: 70px;
+        }
+
+        .col-setor {
+            flex: 0 0 200px;
+            min-width: 180px;
+            max-width: 220px;
+            justify-content: center;
+        }
+
+        .col-responsavel {
+            flex: 0 0 200px;
+            min-width: 180px;
+            max-width: 220px;
+            justify-content: center;
+        }
+
+        .col-abertura {
+            flex: 0 0 120px;
+            justify-content: center;
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .col-prazo {
+            flex: 0 0 120px;
+            justify-content: center;
+            min-width: 120px;
+            max-width: 120px;
+        }
+
+        .col-detalhe {
+            flex: 1 1 auto;
+            min-width: 250px;
+        }
+
+        .col-detalhe,
+        .col-setor,
+        .col-responsavel {
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+        }
+
+        thead .col-detalhe {
+            justify-content: center !important;
+        }
+
+        tbody .col-detalhe {
+            justify-content: flex-start;
+        }
+
+        .cell-content {
+            min-height: 28px;
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .col-codigo .cell-content,
+        .col-setor .cell-content,
+        .col-abertura .cell-content,
+        .col-responsavel .cell-content,
+        .col-prazo .cell-content {
+            justify-content: center;
+        }
+
+        .col-detalhe .cell-content {
+            justify-content: flex-start;
+        }
+
+        thead .col-detalhe .cell-content {
+            justify-content: center !important;
+        }
+
+        .text-2-lines {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+            max-height: 2.6em;
+            word-wrap: break-word;
+            word-break: break-word;
+            width: 100%;
+        }
+
+        .codigo {
+            font-weight: 700;
+            color: #000000;
+            font-family: 'Consolas', monospace;
+            font-size: 11.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -0.5px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .detalhe,
+        .solicitante {
+            font-weight: 700;
+            color: #000000;
+            width: 100%;
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+        }
+
+        .detalhe {
+            font-size: 13px;
+            text-align: left;
+        }
+
+        thead .col-detalhe .detalhe {
+            text-align: center !important;
+        }
+
+        .solicitante {
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .abertura, .prazo {
+            font-weight: 700;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: #000000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -0.5px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 15px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+
+        /* Rodapé compacto */
+        .footer-stats {
+            background: #f1f5f9;
+            border-top: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            margin-top: auto;
+            width: 100%;
+            font-size: 11px;
+        }
+
+        .footer-stats-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .footer-stats-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            white-space: nowrap;
+        }
+
+        .footer-stats-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .footer-stats-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .footer-stats-item strong {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .footer-stats-number {
+            font-weight: 700;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .footer-stats-number.positive {
+            color: #dc2626;
+        }
+
+        .footer-stats-number.zero {
+            color: #94a3b8;
+        }
+
+        .busca-chamado {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            width: 100%;
+        }
+
+        .busca-chamado-content {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .busca-chamado-auth { order: 2; margin-left: auto; }
+        .busca-chamado-label { order: 1; }
+        .busca-chamado-input, .busca-chamado-btn { order: 1; }
+
+        .busca-chamado-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            white-space: nowrap;
+        }
+
+        .busca-chamado-auth { order: 2; display:flex; align-items:center; gap:6px; margin-left:auto; }
+        .busca-chamado-login { padding: 6px 9px; border-radius: 6px; background: #334155; color: #fff; text-decoration: none; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .busca-chamado-logado { font-size: 11px; color: #334155; font-weight: 700; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .busca-chamado-input {
+            flex: 0 1 150px;
+            min-width: 110px;
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .busca-chamado-input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .busca-chamado-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .busca-chamado-btn-fluig {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .busca-chamado-btn-fluig:hover {
+            background: #1d4ed8;
+        }
+
+        .busca-chamado-btn-visualizador {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .busca-chamado-btn-visualizador:hover {
+            background: #cbd5e1;
+        }
+
+        /* Tooltip personalizado - MAIOR HORIZONTALMENTE */
+        .solicitacao-row {
+            cursor: pointer;
+            transition: background-color 0.1s ease;
+        }
+
+        .solicitacao-row:hover {
+            background-color: #f8fafc;
+        }
+
+        .custom-tooltip {
+            position: fixed;
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 750px;
+            min-width: 550px;
+            width: auto;
+            max-height: 80vh;
+            overflow-y: auto;
+            word-wrap: break-word;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            pointer-events: none;
+            line-height: 1.5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .custom-tooltip strong {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="content">
+            @if (!Model.Success)
+            {
+                <div class="error">
+                    <h3 style="margin-bottom: 6px;">⚠️ Erro ao carregar dados</h3>
+                    <p style="margin-bottom: 10px;">@Model.ErrorMessage</p>
+                    <button id="btnRetry" style="padding: 6px 12px; background: #dc2626; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                        Tentar novamente
+                    </button>
+                </div>
+            }
+
+else if (Model.FluigOffline)
+    {
+        <div class="error" style="background: #fef3c7; border-color: #f59e0b; color: #92400e;">
+            <h3 style="margin-bottom: 6px;">⚠️ Fluig Indisponível</h3>
+            <p style="margin-bottom: 10px;">@Model.ErrorMessage</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button id="btnRetry" style="padding: 6px 12px; background: #d97706; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                    🔄 Tentar novamente agora
+                </button>
+                <a href="@Url.Action("RecarregarSessoes")" style="padding: 6px 12px; background: #2563eb; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; text-decoration: none; display: inline-block;">
+                    🔄 Limpar Cache e Reconectar
+                </a>
+            </div>
+            <p style="margin-top: 8px; font-size: 12px; color: #78350f;">
+                ⏱️ Tentando reconectar automaticamente...
+            </p>
+        </div>
+    }
+            else
+            {
+                @if (usuarioLogado)
+                {
+                <nav class="status-tabs" aria-label="Navegação do painel">
+                    <button type="button" class="status-tab active" data-status-tab="painel">Painel</button>
+                    @if (!string.IsNullOrWhiteSpace(ViewBag.UsuarioCentral as string))
+                    {
+                        var estadosUsuario = Model.ChamadosDoUsuarioLogado
+                            .Where(x => !string.IsNullOrWhiteSpace(x.Estado))
+                            .GroupBy(x => x.Estado, StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(x => x.Key)
+                            .ToList();
+                        for (var i = 0; i < estadosUsuario.Count; i++)
+                        {
+                            <button type="button" class="status-tab" data-status-tab="usuario-@i">@estadosUsuario[i].Key <span class="count">@estadosUsuario[i].Count()</span></button>
+                        }
+                    }
+                    @if (!string.IsNullOrWhiteSpace(ViewBag.UsuarioCentral as string))
+                    {
+                        <span class="logged-user">Logado: @ViewBag.UsuarioCentral</span>
+                    }
+                </nav>
+                }
+                <div class="global-refresh-bar">
+                    <button id="btnAutoRefresh" class="btn-auto-refresh active" type="button">
+                        <span id="refreshIcon">🔁</span>
+                        <span id="refreshTimer" class="refresh-timer">(@refreshSeconds s)</span>
+                    </button>
+                </div>
+<div class="status-panel general-status-panel active" data-status-panel="aguardando">
+                <!-- SEÇÃO 1: AGUARDANDO ATENDIMENTO -->
+                <div class="section-header aguardando">
+                    <div class="left-controls">
+                        <div class="contador">
+                            📋 @Model.AguardandoAtendimento.Count
+                        </div>
+                    </div>
+                    <div>
+                        <h2>AGUARDANDO ATENDIMENTO</h2>
+                    </div>
+                </div>
+                <div class="table-container">
+                    @if (Model.AguardandoAtendimento.Count == 0)
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <div>Nenhuma solicitação aguardando atendimento</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-codigo">FLUIG</th>
+                                    <th class="col-detalhe">DETALHE</th>
+                                    <th class="col-setor">SETOR</th>
+                                    <th class="col-abertura">ABERTURA</th>
+                                    <th class="col-prazo">PRAZO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sol in Model.AguardandoAtendimento)
+                                {
+                                    var estaAtrasado = EstaAtrasado(sol.PrazoTarefa);
+                                    var fluigUrl = fluigBaseUrl + sol.Codigo;
+                                    <tr class="solicitacao-row @(estaAtrasado ? "linha-atrasada" : "")"
+                                        data-fluig-url="@fluigUrl"
+                                        data-codigo="@sol.Codigo"
+                                        data-detalhe="@sol.Detalhe"
+                                        data-setor="@sol.Setor"
+                                        data-abertura="@sol.Abertura"
+                                        data-prazo="@sol.PrazoTarefa">
+                                        <td class="col-codigo">
+                                            <div class="cell-content">
+                                                <div class="codigo text-2-lines">@sol.Codigo</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-detalhe">
+                                            <div class="cell-content">
+                                                <div class="detalhe text-2-lines">@sol.Detalhe</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-setor">
+                                            <div class="cell-content">
+                                                <div class="solicitante text-2-lines">@sol.Setor</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-abertura">
+                                            <div class="cell-content">
+                                                <div class="abertura text-2-lines">@sol.Abertura</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-prazo">
+                                            <div class="cell-content">
+                                                <div class="prazo text-2-lines">@sol.PrazoTarefa</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+
+                </div>
+
+                <div class="status-panel general-status-panel active" data-status-panel="atendimento">
+                <!-- SEÇÃO 2: EM ATENDIMENTO -->
+                <div class="section-header ematendimento">
+                    <div class="left-controls">
+                        <div class="contador">
+                            🧑‍💻 @Model.EmAtendimento.Count
+                        </div>
+                    </div>
+                    <div>
+                        <h2>EM ATENDIMENTO</h2>
+                    </div>
+                </div>
+                <div class="table-container">
+                    @if (Model.EmAtendimento.Count == 0)
+                    {
+                        <div class="empty-state">
+                            <div class="empty-state-icon">✅</div>
+                            <div>Nenhuma solicitação em atendimento</div>
+                        </div>
+                    }
+                    else
+                    {
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-codigo">FLUIG</th>
+                                    <th class="col-detalhe">DETALHE</th>
+                                    <th class="col-setor">SETOR</th>
+                                    <th class="col-responsavel">RESPONSÁVEL</th>
+                                    <th class="col-abertura">ABERTURA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sol in Model.EmAtendimento)
+                                {
+                                    var estaAtrasado = EstaAtrasado(sol.PrazoTarefa);
+                                    // A sessão do Fluig é criada no servidor; a senha nunca vai para o navegador.
+                                    // Padrão: abre o Fluig de verdade (direto, sem passar pelo nosso proxy) —
+                                    // é a experiência completa e sem as limitações do visualizador embutido.
+                                    // Segurando Ctrl/Cmd ao clicar, abre pelo proxy (útil quando a sessão
+                                    // direta no Fluig não está disponível/logada no navegador da pessoa).
+                                    var fluigUrl = Url.Action("VisualizarChamado", "Home", new { codigo = sol.Codigo, app_ecm_workflowview_detailsProcessInstanceID = sol.Codigo });
+                                    var fluigUrlDireto = fluigBaseUrl + sol.Codigo;
+                                    <tr class="solicitacao-row @(estaAtrasado ? "linha-atrasada" : "")"
+                                        data-fluig-url="@fluigUrl"
+                                        data-fluig-direct-url="@fluigUrlDireto"
+                                        data-codigo="@sol.Codigo"
+                                        data-detalhe="@sol.Detalhe"
+                                        data-setor="@sol.Setor"
+                                        data-responsavel="@sol.Responsavel"
+                                        data-abertura="@sol.Abertura"
+                                        data-prazo="@sol.PrazoTarefa">
+                                        <td class="col-codigo">
+                                            <div class="cell-content">
+                                                <div class="codigo text-2-lines">@sol.Codigo</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-detalhe">
+                                            <div class="cell-content">
+                                                <div class="detalhe text-2-lines">@sol.Detalhe</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-setor">
+                                            <div class="cell-content">
+                                                <div class="solicitante text-2-lines">@sol.Setor</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-responsavel">
+                                            <div class="cell-content">
+                                                <div class="responsavel text-2-lines">@sol.Responsavel</div>
+                                            </div>
+                                        </td>
+                                        <td class="col-abertura">
+                                            <div class="cell-content">
+                                                <div class="abertura text-2-lines">@sol.Abertura</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(ViewBag.UsuarioCentral as string))
+                {
+                    var estadosUsuario = Model.ChamadosDoUsuarioLogado
+                        .Where(x => !string.IsNullOrWhiteSpace(x.Estado))
+                        .GroupBy(x => x.Estado, StringComparer.OrdinalIgnoreCase)
+                        .OrderBy(x => x.Key)
+                        .ToList();
+                    for (var i = 0; i < estadosUsuario.Count; i++)
+                    {
+                        <div class="status-panel" data-status-panel="usuario-@i">
+                            <div class="section-header" style="background:#7c3aed;border-color:#6d28d9;">
+                                <div class="left-controls"><div class="contador">@estadosUsuario[i].Count()</div></div>
+                                <div><h2>@estadosUsuario[i].Key — meus chamados</h2></div>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead><tr><th class="col-codigo">FLUIG</th><th class="col-detalhe">DETALHE</th><th class="col-setor">SETOR</th><th class="col-abertura">ABERTURA</th><th class="col-prazo">PRAZO</th></tr></thead>
+                                    <tbody>
+                                    @foreach (var sol in estadosUsuario[i])
+                                    {
+                                        var estaAtrasado = EstaAtrasado(sol.PrazoTarefa);
+                                        var fluigUrl = Url.Action("VisualizarChamado", "Home", new { codigo = sol.Codigo, app_ecm_workflowview_detailsProcessInstanceID = sol.Codigo });
+                                        <tr class="solicitacao-row @(estaAtrasado ? "linha-atrasada" : "")" data-fluig-url="@fluigUrl" data-fluig-direct-url="@(fluigBaseUrl + sol.Codigo)" data-codigo="@sol.Codigo" data-detalhe="@sol.Detalhe" data-setor="@sol.Setor" data-abertura="@sol.Abertura" data-prazo="@sol.PrazoTarefa">
+                                            <td class="col-codigo"><div class="cell-content"><div class="codigo text-2-lines">@sol.Codigo</div></div></td>
+                                            <td class="col-detalhe"><div class="cell-content"><div class="detalhe text-2-lines">@sol.Detalhe</div></div></td>
+                                            <td class="col-setor"><div class="cell-content"><div class="solicitante text-2-lines">@sol.Setor</div></div></td>
+                                            <td class="col-abertura"><div class="cell-content"><div class="abertura text-2-lines">@sol.Abertura</div></div></td>
+                                            <td class="col-prazo"><div class="cell-content"><div class="prazo text-2-lines">@sol.PrazoTarefa</div></div></td>
+                                        </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        </div>
+    </div>
+
+       @if (Model.ContagensUsuarios != null && Model.ContagensUsuarios.Any())
+    {
+        <div id="footerStats" class="footer-stats" style="display: none;">
+            <div class="footer-stats-content">
+                <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; width: 100%;">
+                    <span class="footer-stats-title">
+                        📊 Assumidos @DateTime.Now.ToString("dd/MM")  (@DateTime.Now.AddDays(-1).ToString("dd/MM")):
+                    </span>
+                    <div class="footer-stats-list" style="display: flex; flex-wrap: wrap; gap: 16px;">
+                        @foreach (var item in Model.ContagensUsuarios.OrderByDescending(x => x.Hoje))
+                        {
+                            string login = item.Nome;
+                            if (login.Contains("(") && login.Contains(")"))
+                            {
+                                int start = login.IndexOf("(") + 1;
+                                int end = login.IndexOf(")");
+                                if (end > start)
+                                    login = login.Substring(start, end - start);
+                            }
+                            else if (login.Length > 15)
+                            {
+                                var partes = login.Split(' ');
+                                if (partes.Length >= 2)
+                                    login = partes[0] + " " + partes[1].Substring(0, 1) + ".";
+                                else
+                                    login = login.Substring(0, Math.Min(12, login.Length));
+                            }
+                            
+                            <div class="footer-stats-item">
+                                <strong>@login:</strong>
+                                <span class="footer-stats-number @(item.Hoje > 0 ? "positive" : "zero")">@item.Hoje</span>
+                                <span style="color: #64748b; font-size: 11px;">(@item.Ontem)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div id="buscaChamado" class="busca-chamado">
+        <div class="busca-chamado-content">
+            <span class="busca-chamado-label">🔎 Buscar chamado:</span>
+            <input type="text" id="buscaChamadoInput" class="busca-chamado-input" placeholder="Número do chamado (ex: 1342665)" inputmode="numeric" autocomplete="off">
+            <button type="button" id="btnBuscaChamadoFluig" class="busca-chamado-btn busca-chamado-btn-fluig">Abrir no Fluig</button>
+            <button type="button" id="btnBuscaChamadoVisualizador" class="busca-chamado-btn busca-chamado-btn-visualizador">Abrir no Visualizador</button>
+            <span class="busca-chamado-auth">
+            @if (string.IsNullOrWhiteSpace(ViewBag.UsuarioCentral as string))
+            {
+                <a href="@Url.Action("CentralChamados", "Home")" class="busca-chamado-login">Login</a>
+            }
+            else
+            {
+                <span class="busca-chamado-logado">@ViewBag.UsuarioCentral</span>
+                @if (ViewBag.PodeAcessarCentral == true)
+                {
+                    <a href="@Url.Action("CentralChamados", "Home")" class="busca-chamado-login">Central</a>
+                }
+                <form method="post" action="@Url.Action("SairCentralChamados", "Home")" style="display:inline"><button type="submit" class="busca-chamado-login">Sair</button></form>
+            }
+            </span>
+</div>
+    </div>
+
+<script>
+        (function() {
+            function moverControleAtualizacao() {
+                var controle = document.getElementById('btnAutoRefresh');
+                if (!controle) return;
+                var primeiroPainel = Array.from(document.querySelectorAll('[data-status-panel].active'))
+                    .find(function(painel) { return painel.querySelector('.section-header'); });
+                var cabecalho = primeiroPainel && primeiroPainel.querySelector('.section-header');
+                if (cabecalho) cabecalho.appendChild(controle);
+            }
+            function activateStatusTab(key, selectedTab) {
+                document.querySelectorAll('[data-status-tab]').forEach(function(x) { x.classList.toggle('active', x === selectedTab); });
+                document.querySelectorAll('[data-status-panel]').forEach(function(x) {
+                    var isGeneral = x.classList.contains('general-status-panel');
+                    var show = key === 'painel' ? (x.getAttribute('data-status-panel') === 'painel' || isGeneral) : x.getAttribute('data-status-panel') === key;
+                    x.classList.toggle('active', show);
+                });
+                moverControleAtualizacao();
+            }
+            var ACTIVE_TAB_KEY = 'painelFluigActiveTab';
+            function tabLabel(tab) { return tab ? (tab.textContent || 'Painel').trim().replace(/\s+\d+$/, '') : 'Painel'; }
+            function atualizarTituloAba(tab) {
+                var label = tabLabel(tab);
+                var timer = document.getElementById('refreshTimer');
+                var tempo = timer ? timer.textContent.replace(/[()]/g, '') : '';
+                if (tempo === '0s') tempo = 'Atualizando...';
+                document.title = 'Painel Fluig — ' + label + ' — ' + tempo;
+            }
+            document.querySelectorAll('[data-status-tab]').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    var key = tab.getAttribute('data-status-tab');
+                    localStorage.setItem(ACTIVE_TAB_KEY, key);
+                    activateStatusTab(key, tab);
+                    atualizarTituloAba(tab);
+                });
+            });
+            var savedTab = localStorage.getItem(ACTIVE_TAB_KEY);
+            var savedButton = savedTab && document.querySelector('[data-status-tab="' + savedTab + '"]');
+            if (savedButton) activateStatusTab(savedTab, savedButton);
+            else moverControleAtualizacao();
+
+            'use strict';
+            // Mesma lógica dos links das tabelas: "Abrir no Fluig" usa a sessão direta do
+            // usuário no navegador; "Abrir no Visualizador" passa pelo nosso proxy (útil quando
+            // não há sessão do Fluig aberta no navegador).
+            var fluigBaseUrlBusca = '@fluigBaseUrl';
+            var visualizarChamadoBaseUrlBusca = '@Html.Raw(Url.Action("VisualizarChamado", "Home"))';
+
+            function codigoValido() {
+                var input = document.getElementById('buscaChamadoInput');
+                var codigo = (input.value || '').trim().replace(/\D/g, '');
+                if (!codigo) {
+                    input.focus();
+                    return null;
+                }
+                return codigo;
+            }
+
+            document.getElementById('btnBuscaChamadoFluig').addEventListener('click', function() {
+                var codigo = codigoValido();
+                if (!codigo) return;
+                window.open(fluigBaseUrlBusca + codigo, '_blank');
+            });
+
+            document.getElementById('btnBuscaChamadoVisualizador').addEventListener('click', function() {
+                var codigo = codigoValido();
+                if (!codigo) return;
+                var url = visualizarChamadoBaseUrlBusca + '?codigo=' + encodeURIComponent(codigo) + '&app_ecm_workflowview_detailsProcessInstanceID=' + encodeURIComponent(codigo);
+                window.open(url, '_blank');
+            });
+
+            document.getElementById('buscaChamadoInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('btnBuscaChamadoFluig').click();
+                }
+            });
+        })();
+</script>
+
+<script>
+        (function() {
+            'use strict';
+            
+            const AUTO_REFRESH_KEY = 'autoRefreshActive';
+            const REFRESH_INTERVAL = @refreshSeconds * 1000;
+            const INITIAL_COUNTDOWN = @refreshSeconds;
+            
+            let autoRefreshActive = true;
+            let countdown = INITIAL_COUNTDOWN;
+            let refreshStartTime = Date.now();
+            let intervals = {};
+            let isRefreshing = false;
+            
+            const elements = {
+                btnAutoRefresh: document.getElementById('btnAutoRefresh'),
+                refreshTimer: document.getElementById('refreshTimer'),
+                btnRetry: document.getElementById('btnRetry'),
+                mainContainer: document.querySelector('.main-container')
+            };
+            
+            const refreshSystem = {
+                init() {
+                    const saved = localStorage.getItem(AUTO_REFRESH_KEY);
+                    autoRefreshActive = saved !== null ? saved === 'true' : true;
+                    
+                    if (autoRefreshActive) {
+                        this.calcularContadorInicial();
+                    }
+                    
+                    this.update();
+                },
+                
+                calcularContadorInicial() {
+                    const agora = Date.now();
+                    const tempoDesdeCarregamento = agora - performance.timing.navigationStart;
+                    const segundosDecorridos = Math.floor(tempoDesdeCarregamento / 1000) % @refreshSeconds;
+                    
+                    countdown = @refreshSeconds - segundosDecorridos;
+                    if (countdown <= 0) {
+                        countdown = 0;
+                        this.marcarComoRefreshing();
+                    }
+                    
+                    this.atualizarDisplay();
+                },
+                
+                start() {
+                    this.stop();
+                    refreshStartTime = Date.now();
+                    this.agendarRecarga();
+                    this.startCountdown();
+                },
+                
+                agendarRecarga() {
+                    clearTimeout(intervals.refreshTimeout);
+                    const agora = Date.now();
+                    const tempoDecorrido = agora - refreshStartTime;
+                    const tempoRestante = Math.max(0, REFRESH_INTERVAL - tempoDecorrido);
+                    
+                    intervals.refreshTimeout = setTimeout(() => {
+                        this.executarRecarga();
+                    }, tempoRestante);
+                },
+                
+                executarRecarga() {
+                    this.marcarComoRefreshing();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                },
+                
+                marcarComoRefreshing() {
+                    isRefreshing = true;
+                    countdown = 0;
+                    if (elements.btnAutoRefresh) elements.btnAutoRefresh.classList.add('refreshing');
+                    this.atualizarDisplay();
+                },
+                
+                resetRefreshing() {
+                    isRefreshing = false;
+                    if (elements.btnAutoRefresh) elements.btnAutoRefresh.classList.remove('refreshing');
+                },
+                
+                stop() {
+                    clearTimeout(intervals.refreshTimeout);
+                    clearInterval(intervals.countdown);
+                    if (elements.refreshTimer) elements.refreshTimer.textContent = "(OFF)";
+                    this.resetRefreshing();
+                },
+                
+                toggle() {
+                    autoRefreshActive = !autoRefreshActive;
+                    
+                    if (autoRefreshActive) {
+                        countdown = @refreshSeconds;
+                        this.resetRefreshing();
+                        this.atualizarDisplay();
+                    }
+                    
+                    this.update();
+                    localStorage.setItem(AUTO_REFRESH_KEY, autoRefreshActive);
+                },
+                
+                update() {
+                    if (autoRefreshActive) {
+                        if (elements.btnAutoRefresh) elements.btnAutoRefresh.className = 'btn-auto-refresh active';
+                        this.start();
+                    } else {
+                        if (elements.btnAutoRefresh) elements.btnAutoRefresh.className = 'btn-auto-refresh inactive';
+                        this.stop();
+                    }
+                },
+                
+                startCountdown() {
+                    clearInterval(intervals.countdown);
+                    
+                    const updateContador = () => {
+                        if (!autoRefreshActive || isRefreshing) return;
+                        
+                        const agora = Date.now();
+                        const tempoDecorrido = agora - refreshStartTime;
+                        const segundosDecorridos = Math.floor(tempoDecorrido / 1000);
+                        
+                        countdown = Math.max(0, @refreshSeconds - segundosDecorridos);
+                        
+                        if (countdown === 0 && !isRefreshing) {
+                            this.marcarComoRefreshing();
+                        }
+                        
+                        this.atualizarDisplay();
+                        
+                        if (autoRefreshActive && !isRefreshing) {
+                            requestAnimationFrame(updateContador);
+                        }
+                    };
+                    
+                    updateContador();
+                },
+                
+                atualizarDisplay() {
+                    if (autoRefreshActive && elements.refreshTimer) {
+                        if (isRefreshing) {
+                            elements.refreshTimer.textContent = `(0s)`;
+                        } else {
+                            elements.refreshTimer.textContent = `(${countdown}s)`;
+                        }
+                        var activeTab = document.querySelector('[data-status-tab].active');
+                        if (typeof atualizarTituloAba === 'function') atualizarTituloAba(activeTab);
+                    }
+                }
+            };
+            
+            const titleSystem = {
+                init() {
+                    this.update();
+                },
+                update() {
+                    var activeTab = document.querySelector('[data-status-tab].active');
+                    if (typeof atualizarTituloAba === 'function') atualizarTituloAba(activeTab);
+                }
+            };
+            
+            const tooltipSystem = {
+                currentTooltip: null,
+                
+                init() {
+                    const rows = document.querySelectorAll('.solicitacao-row');
+                    rows.forEach(row => {
+                        row.addEventListener('mouseenter', (e) => {
+                            this.showTooltip(e, row);
+                        });
+                        
+                        row.addEventListener('mouseleave', () => {
+                            this.hideTooltip();
+                        });
+                        
+                        row.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            // Padrão: abre o Fluig direto. Ctrl/Cmd+clique: abre pelo visualizador via proxy
+                            // (só as linhas de "Em Atendimento" têm essa opção; as demais só têm o link direto).
+                            const usarProxy = e.ctrlKey || e.metaKey;
+                            const urlProxy = row.getAttribute('data-fluig-url');
+                            const urlDireta = row.getAttribute('data-fluig-direct-url');
+                            const url = usarProxy ? urlProxy : (urlDireta || urlProxy);
+                            if (url) {
+                                window.open(url, '_blank');
+                            }
+                        });
+                    });
+                },
+                
+                showTooltip(event, row) {
+                    this.hideTooltip();
+                    
+                    const codigo = row.getAttribute('data-codigo') || '';
+                    const detalhe = row.getAttribute('data-detalhe') || '';
+                    const setor = row.getAttribute('data-setor') || '';
+                    const responsavel = row.getAttribute('data-responsavel') || '';
+                    const abertura = row.getAttribute('data-abertura') || '';
+                    const prazo = row.getAttribute('data-prazo') || '';
+                    
+                    let tooltipContent = `
+                        <div style="font-weight: 600; margin-bottom: 8px; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+                            📋 <strong>${this.escapeHtml(codigo)}</strong>
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                            <span style="color: #94a3b8;">📝 Detalhe:</span><br>
+                            <span style="word-break: break-word;">${this.escapeHtml(detalhe)}</span>
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                            <span style="color: #94a3b8;">🏢 Setor:</span> ${this.escapeHtml(setor)}
+                        </div>
+                    `;
+                    
+                    if (responsavel) {
+                        tooltipContent += `
+                            <div style="margin-bottom: 6px;">
+                                <span style="color: #94a3b8;">👤 Responsável:</span> ${this.escapeHtml(responsavel)}
+                            </div>
+                        `;
+                    }
+                    
+                    tooltipContent += `
+                        <div style="margin-bottom: 6px;">
+                            <span style="color: #94a3b8;">📅 Abertura:</span> ${this.escapeHtml(abertura)}
+                        </div>
+                    `;
+                    
+                    if (prazo) {
+                        tooltipContent += `
+                            <div>
+                                <span style="color: #94a3b8;">⏰ Prazo:</span> ${this.escapeHtml(prazo)}
+                            </div>
+                        `;
+                    }
+                    
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'custom-tooltip';
+                    tooltip.innerHTML = tooltipContent;
+                    document.body.appendChild(tooltip);
+                    this.currentTooltip = tooltip;
+                    
+                    this.positionTooltip(event, tooltip);
+                    
+                    const moveHandler = (moveEvent) => {
+                        this.positionTooltip(moveEvent, tooltip);
+                    };
+                    row.addEventListener('mousemove', moveHandler);
+                    
+                    row.addEventListener('mouseleave', () => {
+                        row.removeEventListener('mousemove', moveHandler);
+                    }, { once: true });
+                },
+                
+                positionTooltip(event, tooltip) {
+                    // Primeiro, posiciona temporariamente para medir
+                    tooltip.style.left = '0px';
+                    tooltip.style.top = '0px';
+                    tooltip.style.visibility = 'hidden';
+                    
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    const tooltipWidth = tooltipRect.width;
+                    const tooltipHeight = tooltipRect.height;
+                    
+                    const mouseX = event.clientX;
+                    const mouseY = event.clientY;
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Calcular posição X (horizontal)
+                    let left = mouseX + 15;
+                    if (left + tooltipWidth > viewportWidth) {
+                        left = mouseX - tooltipWidth - 15;
+                    }
+                    if (left < 0) {
+                        left = 10;
+                    }
+                    
+                    // Calcular posição Y (vertical) - PRIORIDADE PARA BAIXO
+                    let top = mouseY + 15;
+                    
+                    // Verifica se há espaço suficiente embaixo
+                    const spaceBelow = viewportHeight - (mouseY + 15);
+                    const spaceAbove = mouseY - 15;
+                    
+                    // Se couber embaixo, coloca embaixo
+                    if (spaceBelow >= tooltipHeight) {
+                        top = mouseY + 15;
+                    } 
+                    // Se não couber embaixo, tenta em cima
+                    else if (spaceAbove >= tooltipHeight) {
+                        top = mouseY - tooltipHeight - 15;
+                    }
+                    // Se não couber nem em cima nem embaixo, coloca embaixo mesmo assim e ajusta
+                    else {
+                        top = mouseY + 15;
+                        const overflow = (top + tooltipHeight) - viewportHeight;
+                        if (overflow > 0) {
+                            top = top - overflow - 5;
+                        }
+                    }
+                    
+                    // Garante que não fique fora da tela
+                    top = Math.max(5, Math.min(top, viewportHeight - tooltipHeight - 5));
+                    left = Math.max(5, Math.min(left, viewportWidth - tooltipWidth - 5));
+                    
+                    tooltip.style.visibility = 'visible';
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top = top + 'px';
+                },
+                
+                hideTooltip() {
+                    if (this.currentTooltip) {
+                        this.currentTooltip.remove();
+                        this.currentTooltip = null;
+                    }
+                },
+                
+                escapeHtml(text) {
+                    if (!text) return '';
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+            };
+            
+            const footerSystem = {
+                init() {
+                    this.setupHotkey();
+                    this.checkPreviousSession();
+                },
+                
+                setupHotkey() {
+                    document.addEventListener('keydown', (e) => {
+                        if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+                            e.preventDefault();
+                            this.toggleFooter();
+                        }
+                    });
+                },
+                
+                toggleFooter() {
+                    const footer = document.getElementById('footerStats');
+                    if (footer) {
+                        if (footer.style.display === 'none' || footer.style.display === '') {
+                            footer.style.display = 'block';
+                            localStorage.setItem('footerVisible', 'true');
+                            this.showNotification('Rodapé visível', 'success');
+                        } else {
+                            footer.style.display = 'none';
+                            localStorage.setItem('footerVisible', 'false');
+                            this.showNotification('Rodapé oculto', 'info');
+                        }
+                    }
+                },
+                
+                checkPreviousSession() {
+                    const footer = document.getElementById('footerStats');
+                    if (footer) {
+                        const wasVisible = localStorage.getItem('footerVisible') === 'true';
+                        footer.style.display = wasVisible ? 'block' : 'none';
+                    }
+                },
+                
+                showNotification(message, type) {
+                    const existingNotif = document.querySelector('.hotkey-notification');
+                    if (existingNotif) existingNotif.remove();
+                    
+                    const notification = document.createElement('div');
+                    notification.className = 'hotkey-notification';
+                    notification.innerHTML = `
+                        <div style="
+                            position: fixed;
+                            bottom: 20px;
+                            right: 20px;
+                            background: ${type === 'success' ? '#10b981' : '#3b82f6'};
+                            color: white;
+                            padding: 8px 16px;
+                            border-radius: 8px;
+                            font-size: 12px;
+                            font-weight: 500;
+                            z-index: 9999;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            animation: slideIn 0.3s ease;
+                            pointer-events: none;
+                        ">
+                            ${type === 'success' ? '🔓' : '🔒'} ${message}
+                        </div>
+                    `;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        if (notification && notification.remove) notification.remove();
+                    }, 2000);
+                }
+            };
+            
+            const style = document.createElement('style');
+            style.textContent = `
+                @@keyframes slideIn {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.addEventListener('DOMContentLoaded', () => {
+                if (elements.btnAutoRefresh) {
+                    elements.btnAutoRefresh.addEventListener('click', () => refreshSystem.toggle());
+                }
+                if (elements.btnRetry) {
+                    elements.btnRetry.addEventListener('click', () => location.reload());
+                }
+                
+                refreshSystem.init();
+                titleSystem.init();
+                tooltipSystem.init();
+                footerSystem.init();
+            });
+        })();
+    </script>
+</body>
+</html>
